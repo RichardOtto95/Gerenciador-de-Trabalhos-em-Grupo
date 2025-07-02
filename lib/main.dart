@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_bd/pages/forget_password.dart';
 import 'package:trabalho_bd/pages/home.dart';
+import 'package:trabalho_bd/pages/profile.dart';
 import 'package:trabalho_bd/pages/sign_in.dart';
 import 'package:trabalho_bd/pages/sign_up.dart';
 
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         "/signin": (ctx) => SignIn(),
         "/signup": (ctx) => SignUp(),
         "/forget-password": (ctx) => ForgetPassword(),
+        "/profile": (ctx) => Profile(),
       },
     );
   }

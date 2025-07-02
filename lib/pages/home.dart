@@ -18,7 +18,12 @@ class _HomeState extends State<Home> {
         actions: [
           Badge(
             label: Text("50"),
-            child: IconButton(onPressed: () {}, icon: Icon(Icons.person)),
+            child: IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed("/profile");
+              },
+              icon: Icon(Icons.person),
+            ),
           ),
           SizedBox(width: 10),
         ],
