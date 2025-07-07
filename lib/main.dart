@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:trabalho_bd/db/db_helper.dart';
 import 'package:trabalho_bd/pages/forget_password_page.dart';
 import 'package:trabalho_bd/pages/group_page.dart';
 import 'package:trabalho_bd/pages/group_data_page.dart';
@@ -9,6 +10,8 @@ import 'package:trabalho_bd/pages/sign_up_page.dart';
 import 'package:trabalho_bd/pages/task_page.dart';
 
 void main() {
+  DatabaseHelper().mainConnection();
+
   runApp(const MyApp());
 }
 

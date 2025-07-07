@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:postgres/postgres.dart';
 
 class DatabaseHelper {
@@ -10,17 +12,50 @@ class DatabaseHelper {
 
   DatabaseHelper._internal();
 
-  Future<void> connect() async {
-    _connection = await Connection.open(
-      Endpoint(
-        host: 'localhost',
-        database: 'postgres',
-        username: 'user',
-        password: 'pass',
-      ),
-    );
+  Future<bool> connect() async {
+    try {
+      _connection = await Connection.open(
+        Endpoint(
+          host: 'localhost',
+          port: 5432,
+          database: 'trabalho_em_grupo_bd',
+          username: 'appuser',
+          password: 'masterkey',
+        ),
+        settings: ConnectionSettings(sslMode: SslMode.disable),
+      );
 
-    print('Connected to PostgreSQL database.');
+      print('Connected to PostgreSQL database.');
+    } on PgException catch (e) {
+      print(e);
+      if (e.message ==
+          "Socket error: FormatException: Missing extension byte (at offset 40)") {
+        print("Banco não encontrado");
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<void> createTables() async {
+    final schema = await File("assets/sql/schema.sql").readAsString();
+
+    final commands = schema.split(";;");
+
+    for (final command in commands) {
+      await _connection.execute(command);
+    }
+  }
+
+  Future<void> mainConnection() async {
+    if (!(await connect())) return;
+    try {
+      await _connection.execute("SELECT * FROM NOTIFICACOES LIMIT 1");
+    } on ServerException catch (e) {
+      if (e.code == "42P01") {
+        createTables();
+      }
+    }
   }
 
   Future<void> close() async {
