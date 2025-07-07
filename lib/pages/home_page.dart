@@ -124,7 +124,7 @@ class _HomeState extends State<Home> {
                             child: ListTile(title: LinearProgressIndicator()),
                           );
                         }
-                        final groupData = snapshot.data!;
+                        final grupo = snapshot.data!;
 
                         return Card(
                           margin: EdgeInsets.symmetric(
@@ -132,8 +132,8 @@ class _HomeState extends State<Home> {
                             vertical: 5,
                           ),
                           child: ListTile(
-                            title: Text(groupData.nome),
-                            subtitle: Text(groupData.descricao ?? ""),
+                            title: Text(grupo.nome),
+                            subtitle: Text(grupo.descricao ?? ""),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -147,11 +147,14 @@ class _HomeState extends State<Home> {
                                     return Text("${snapshot.data.toString()}/");
                                   },
                                 ),
-                                Text(groupData.maxMembros.toString()),
+                                Text(grupo.maxMembros.toString()),
                               ],
                             ),
-                            onTap: () {
-                              Navigator.of(context).pushNamed("/group");
+                            onTap: () async {
+                              await Navigator.of(
+                                context,
+                              ).pushNamed("/group", arguments: grupo);
+                              setState(() {});
                             },
                           ),
                         );
@@ -186,10 +189,11 @@ class _HomeState extends State<Home> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(
+        onPressed: () async {
+          await Navigator.of(
             context,
           ).pushNamed("/group-create", arguments: widget.usuario);
+          setState(() {});
         },
         child: Icon(Icons.add),
       ),

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:trabalho_bd/db/db_helper.dart';
+import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/pages/forget_password_page.dart';
 import 'package:trabalho_bd/pages/group_create_page.dart';
@@ -48,35 +49,69 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case "/":
-            return MaterialPageRoute(builder: (context) => SignIn());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SignIn(),
+            );
           case "/home":
             return MaterialPageRoute(
+              settings: settings,
+
               builder: (context) {
                 return Home(usuario: settings.arguments as Usuario);
               },
             );
           case "/signin":
-            return MaterialPageRoute(builder: (context) => SignIn());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SignIn(),
+            );
           case "/signup":
-            return MaterialPageRoute(builder: (context) => SignUp());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SignUp(),
+            );
           case "/forget-password":
-            return MaterialPageRoute(builder: (context) => ForgetPassword());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => ForgetPassword(),
+            );
           case "/profile":
-            return MaterialPageRoute(builder: (context) => Profile());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => Profile(),
+            );
           case "/group-create":
             return MaterialPageRoute(
+              settings: settings,
               builder: (context) {
                 return GroupCreate(criador: settings.arguments as Usuario);
               },
             );
           case "/group":
-            return MaterialPageRoute(builder: (context) => GroupPage());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                return GroupPage(grupo: settings.arguments as Grupo);
+              },
+            );
           case "/group-data":
-            return MaterialPageRoute(builder: (context) => GroupData());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                return GroupData(grupo: settings.arguments as Grupo);
+              },
+            );
           case "/task":
-            return MaterialPageRoute(builder: (context) => Task());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => Task(),
+            );
           default:
-            return MaterialPageRoute(builder: (context) => SignIn());
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) => SignIn(),
+            );
         }
       },
     );

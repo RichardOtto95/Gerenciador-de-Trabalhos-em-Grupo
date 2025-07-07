@@ -94,12 +94,8 @@ class _GroupCreateState extends State<GroupCreate> {
     }
   }
 
-  int builds = 0;
-
   @override
   Widget build(BuildContext context) {
-    builds++;
-    print("build $builds");
     return Scaffold(
       appBar: AppBar(title: Text("Criar Grupo")),
       body: Form(

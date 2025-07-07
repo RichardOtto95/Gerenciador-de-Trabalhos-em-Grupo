@@ -139,7 +139,7 @@ class GrupoRepository {
   /// Deleta um grupo pelo seu ID.
   Future<void> deleteGrupo(String id) async {
     await _connection.execute(
-      'DELETE FROM grupos WHERE id = @id;',
+      Sql.named('DELETE FROM grupos WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Grupo com ID $id deletado.');

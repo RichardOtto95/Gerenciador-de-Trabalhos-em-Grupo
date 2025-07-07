@@ -184,6 +184,13 @@ class UsuarioGrupoRepository {
     print('Relacionamento UsuarioGrupo com ID $id deletado.');
   }
 
+  Future<void> deleteGrupo(String grupoId) async {
+    await _connection.execute("""
+      DELETE FROM usuarios_grupos WHERE grupo_id = '$grupoId'
+    """);
+    print('Relacionamentos UsuarioGrupo com group_id $grupoId deletado.');
+  }
+
   /// Remove um usuário de um grupo.
   Future<void> removeUsuarioFromGrupo(String usuarioId, String grupoId) async {
     await _connection.execute(
