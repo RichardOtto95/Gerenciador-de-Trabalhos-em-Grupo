@@ -63,7 +63,7 @@ class UsuarioGrupoRepository {
       INSERT INTO usuarios_grupos (id, usuario_id, grupo_id, papel, data_entrada, ativo)
       VALUES (@id, @usuario_id, @grupo_id, @papel, @data_entrada, @ativo);
     ''';
-    await _connection.execute(query, parameters: ug.toMap());
+    await _connection.execute(Sql.named(query), parameters: ug.toMap());
     print(
       'Usuário ${ug.usuarioId} adicionado ao grupo ${ug.grupoId} como ${ug.papel}.',
     );
@@ -72,16 +72,16 @@ class UsuarioGrupoRepository {
   /// Retorna todos os usuários de um grupo específico.
   Future<List<UsuarioGrupo>> getUsuariosByGrupo(
     String grupoId, {
-    bool? ativo,
+    bool ativo = true,
   }) async {
     String whereClause = 'WHERE grupo_id = @grupo_id';
     Map<String, dynamic> params = {'grupo_id': grupoId};
-    if (ativo != null) {
+    if (ativo) {
       whereClause += ' AND ativo = @ativo';
       params['ativo'] = ativo;
     }
     final result = await _connection.execute(
-      'SELECT * FROM usuarios_grupos $whereClause;',
+      Sql.named('SELECT * FROM usuarios_grupos $whereClause;'),
       parameters: params,
     );
     return result
@@ -110,7 +110,7 @@ class UsuarioGrupoRepository {
       params['ativo'] = ativo;
     }
     final result = await _connection.execute(
-      'SELECT * FROM usuarios_grupos $whereClause;',
+      Sql.named('SELECT * FROM usuarios_grupos $whereClause;'),
       parameters: params,
     );
     return result
@@ -133,7 +133,9 @@ class UsuarioGrupoRepository {
     String grupoId,
   ) async {
     final result = await _connection.execute(
-      'SELECT * FROM usuarios_grupos WHERE usuario_id = @usuario_id AND grupo_id = @grupo_id;',
+      Sql.named(
+        'SELECT * FROM usuarios_grupos WHERE usuario_id = @usuario_id AND grupo_id = @grupo_id;',
+      ),
       parameters: {'usuario_id': usuarioId, 'grupo_id': grupoId},
     );
     if (result.isNotEmpty) {
@@ -148,6 +150,16 @@ class UsuarioGrupoRepository {
       });
     }
     return null;
+  }
+
+  /// Retorna a quantidade de usuarios no grupo
+  Future<int> getUsuariosNoGrupo(String id) async {
+    final result = await _connection.execute("""
+      SELECT COUNT(*) AS quantidade
+      FROM usuarios_grupos 
+      WHERE grupo_id = '$id';""");
+
+    return result.first[0] as int;
   }
 
   /// Atualiza o papel ou o status de atividade de um usuário em um grupo.

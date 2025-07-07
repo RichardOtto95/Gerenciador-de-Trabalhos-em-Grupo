@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:trabalho_bd/db/models/grupo_model.dart';
+import 'package:trabalho_bd/db/models/notificacao_model.dart';
+import 'package:trabalho_bd/db/models/usuario_grupo_model.dart';
+import 'package:trabalho_bd/db/models/usuario_model.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  const Home({super.key, required this.usuario});
+
+  final Usuario usuario;
 
   @override
   State<Home> createState() => _HomeState();
@@ -10,14 +16,38 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool searchMode = false;
 
+  List<Notificacao> notificacoes = [
+    Notificacao(
+      usuarioId: "usuarioId",
+      tipo: "tipo",
+      titulo: "titulo",
+      mensagem: "mensagem",
+    ),
+  ];
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Carrega as notificações
+      final notiRepo = NotificacaoRepository();
+      notificacoes = await notiRepo.getNotificacoesByUsuario(widget.usuario.id);
+      setState(() {});
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Fulano de tal"),
+        title: Text(widget.usuario.nome),
         actions: [
           Badge(
-            label: Text("50"),
+            backgroundColor: notificacoes.isEmpty ? Colors.transparent : null,
+
+            label: notificacoes.isEmpty
+                ? null
+                : Text(notificacoes.length.toString()),
             child: IconButton(
               onPressed: () {
                 Navigator.of(context).pushNamed("/profile");
@@ -28,80 +58,140 @@ class _HomeState extends State<Home> {
           SizedBox(width: 10),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: 15),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: TextField(
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hint: Text(
-                  "Procurar por grupos",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: .5),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hint: Text(
+                    "Procurar por grupos",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: .5),
+                    ),
                   ),
-                ),
-                suffixIcon: IconButton(
-                  onPressed: () {},
-                  icon: Icon(Icons.search),
+                  suffixIcon: IconButton(
+                    onPressed: () {},
+                    icon: Icon(Icons.search),
+                  ),
                 ),
               ),
             ),
-          ),
-          SizedBox(height: 15),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              "Grupos",
-              style: Theme.of(context).textTheme.titleLarge,
+            SizedBox(height: 15),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Text(
+                "Grupos",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
-          ),
-          SizedBox(height: 15),
-          Card(
-            child: ListTile(
-              title: Text("Nome do grupo"),
-              onTap: () {
-                Navigator.of(context).pushNamed("/group");
+            SizedBox(height: 10),
+            FutureBuilder<List<UsuarioGrupo>>(
+              future: UsuarioGrupoRepository().getGruposByUsuario(
+                widget.usuario.id,
+              ),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.data!.isEmpty) {
+                  return Center(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 15),
+                        Icon(Icons.group_off_sharp),
+                        SizedBox(height: 15),
+                        Text("Sem grupos ainda"),
+                        SizedBox(height: 15),
+                      ],
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: snapshot.data!.map((ug) {
+                    return FutureBuilder<Grupo?>(
+                      future: GrupoRepository().getGrupoById(ug.grupoId),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData || snapshot.data == null) {
+                          return Card(
+                            child: ListTile(title: LinearProgressIndicator()),
+                          );
+                        }
+                        final groupData = snapshot.data!;
+
+                        return Card(
+                          margin: EdgeInsets.symmetric(
+                            horizontal: 15,
+                            vertical: 5,
+                          ),
+                          child: ListTile(
+                            title: Text(groupData.nome),
+                            subtitle: Text(groupData.descricao ?? ""),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                FutureBuilder<int>(
+                                  future: UsuarioGrupoRepository()
+                                      .getUsuariosNoGrupo(ug.grupoId),
+                                  builder: (context, snapshot) {
+                                    if (!snapshot.hasData) {
+                                      return Text("");
+                                    }
+                                    return Text("${snapshot.data.toString()}/");
+                                  },
+                                ),
+                                Text(groupData.maxMembros.toString()),
+                              ],
+                            ),
+                            onTap: () {
+                              Navigator.of(context).pushNamed("/group");
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                );
               },
-              dense: true,
             ),
-          ),
-          Center(
-            child: Column(
-              children: [
-                SizedBox(height: 15),
-                Icon(Icons.group_off_sharp),
-                SizedBox(height: 15),
-                Text("Sem grupos ainda"),
-                SizedBox(height: 15),
-              ],
+
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: Text(
+                "Tarefas",
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ),
-          ),
-          SizedBox(height: 15),
-          Padding(
-            padding: const EdgeInsets.only(left: 15),
-            child: Text(
-              "Tarefas",
-              style: Theme.of(context).textTheme.titleLarge,
+            SizedBox(height: 15),
+            Center(
+              child: Column(
+                children: [
+                  SizedBox(height: 15),
+                  Icon(Icons.task),
+                  SizedBox(height: 15),
+                  Text("Sem tarefas no momento"),
+                  SizedBox(height: 15),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 15),
-          Center(
-            child: Column(
-              children: [
-                SizedBox(height: 15),
-                Icon(Icons.task),
-                SizedBox(height: 15),
-                Text("Sem tarefas no momento"),
-                SizedBox(height: 15),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(
+            context,
+          ).pushNamed("/group-create", arguments: widget.usuario);
+        },
+        child: Icon(Icons.add),
       ),
     );
   }

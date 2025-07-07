@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:trabalho_bd/db/db_helper.dart';
+import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/pages/forget_password_page.dart';
+import 'package:trabalho_bd/pages/group_create_page.dart';
 import 'package:trabalho_bd/pages/group_page.dart';
 import 'package:trabalho_bd/pages/group_data_page.dart';
 import 'package:trabalho_bd/pages/home_page.dart';
@@ -9,8 +13,8 @@ import 'package:trabalho_bd/pages/sign_in_page.dart';
 import 'package:trabalho_bd/pages/sign_up_page.dart';
 import 'package:trabalho_bd/pages/task_page.dart';
 
-void main() {
-  DatabaseHelper().mainConnection();
+void main() async {
+  await DatabaseHelper().mainConnection();
 
   runApp(const MyApp());
 }
@@ -40,17 +44,51 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       darkTheme: darkTheme,
-      routes: {
-        "/": (ctx) => SignIn(),
-        "/home": (ctx) => Home(),
-        "/signin": (ctx) => SignIn(),
-        "/signup": (ctx) => SignUp(),
-        "/forget-password": (ctx) => ForgetPassword(),
-        "/profile": (ctx) => Profile(),
-        "/group": (ctx) => GroupPage(),
-        "/group-data": (ctx) => GroupData(),
-        "/task": (ctx) => Task(),
+      scrollBehavior: CustomScrollBehavior(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case "/":
+            return MaterialPageRoute(builder: (context) => SignIn());
+          case "/home":
+            return MaterialPageRoute(
+              builder: (context) {
+                return Home(usuario: settings.arguments as Usuario);
+              },
+            );
+          case "/signin":
+            return MaterialPageRoute(builder: (context) => SignIn());
+          case "/signup":
+            return MaterialPageRoute(builder: (context) => SignUp());
+          case "/forget-password":
+            return MaterialPageRoute(builder: (context) => ForgetPassword());
+          case "/profile":
+            return MaterialPageRoute(builder: (context) => Profile());
+          case "/group-create":
+            return MaterialPageRoute(
+              builder: (context) {
+                return GroupCreate(criador: settings.arguments as Usuario);
+              },
+            );
+          case "/group":
+            return MaterialPageRoute(builder: (context) => GroupPage());
+          case "/group-data":
+            return MaterialPageRoute(builder: (context) => GroupData());
+          case "/task":
+            return MaterialPageRoute(builder: (context) => Task());
+          default:
+            return MaterialPageRoute(builder: (context) => SignIn());
+        }
       },
     );
   }
+}
+
+class CustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.touch,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.unknown,
+  };
 }

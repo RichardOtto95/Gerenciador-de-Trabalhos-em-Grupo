@@ -106,7 +106,7 @@ class UsuarioRepository {
   /// Retorna um usuário pelo seu ID.
   Future<Usuario?> getUsuarioById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM usuarios WHERE id = @id;',
+      Sql.named('SELECT * FROM usuarios WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -125,6 +125,29 @@ class UsuarioRepository {
       });
     }
     return null;
+  }
+
+  /// Retorna usuários pelo seu nome e/ou email.
+  Future<List<Usuario>> getUsuariosByNameEmail(String value) async {
+    final result = await _connection.execute("""
+        SELECT * FROM usuarios
+        WHERE email ILIKE '%$value%'
+          OR nome ILIKE '%$value%';
+      """);
+    return result.map((row) {
+      return Usuario.fromMap({
+        'id': row[0],
+        'nome': row[1],
+        'email': row[2],
+        'senha_hash': row[3],
+        'foto_perfil': row[4],
+        'bio': row[5],
+        'ativo': row[6],
+        'data_criacao': row[7],
+        'data_atualizacao': row[8],
+        'ultimo_login': row[9],
+      });
+    }).toList();
   }
 
   /// Retorna um usuário pelo seu email.
@@ -160,8 +183,21 @@ class UsuarioRepository {
       WHERE id = @id;
     ''';
     // Note: data_atualizacao é atualizada pelo trigger no banco, mas incluímos para consistência no toMap.
-    await _connection.execute(query, parameters: usuario.toMap());
+    await _connection.execute(Sql.named(query), parameters: usuario.toMap());
     print('Usuário "${usuario.nome}" atualizado.');
+  }
+
+  /// Atualiza a senha de um usuário existente.
+  Future<void> updatePassword(String id, String senha) async {
+    final query =
+        '''
+      UPDATE usuarios
+      SET senha_hash = '$senha'
+      WHERE id = '$id';
+    ''';
+
+    await _connection.execute(query);
+    print('Senha atualizada.');
   }
 
   /// Deleta um usuário pelo seu ID.

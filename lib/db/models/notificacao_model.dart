@@ -97,7 +97,9 @@ class NotificacaoRepository {
       params['lida'] = lida;
     }
     final result = await _connection.execute(
-      'SELECT * FROM notificacoes $whereClause ORDER BY data_criacao DESC;',
+      Sql.named(
+        'SELECT * FROM notificacoes $whereClause ORDER BY data_criacao DESC;',
+      ),
       parameters: params,
     );
     return result

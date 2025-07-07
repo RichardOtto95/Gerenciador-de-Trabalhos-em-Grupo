@@ -76,7 +76,7 @@ class GrupoRepository {
       INSERT INTO grupos (id, nome, descricao, cor_tema, criador_id, publico, max_membros, data_criacao, data_atualizacao)
       VALUES (@id, @nome, @descricao, @cor_tema, @criador_id, @publico, @max_membros, @data_criacao, @data_atualizacao);
     ''';
-    await _connection.execute(query, parameters: grupo.toMap());
+    await _connection.execute(Sql.named(query), parameters: grupo.toMap());
     print('Grupo "${grupo.nome}" criado.');
   }
 
@@ -103,7 +103,7 @@ class GrupoRepository {
   /// Retorna um grupo pelo seu ID.
   Future<Grupo?> getGrupoById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM grupos WHERE id = @id;',
+      Sql.named('SELECT * FROM grupos WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {

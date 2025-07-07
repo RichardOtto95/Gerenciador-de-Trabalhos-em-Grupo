@@ -19,6 +19,7 @@ class _SignUpState extends State<SignUp> {
 
   void save() async {
     if (formKey.currentState!.validate()) {
+      bool allright = false;
       await executeWithLoad(context, () async {
         final repo = UsuarioRepository();
         final usuario = await repo.getUsuarioByEmail(email);
@@ -28,13 +29,13 @@ class _SignUpState extends State<SignUp> {
           );
           if (!mounted) return;
           mostrarSnackBar(context, "Usuário $nome criado!");
-          if (!mounted) return;
-          Navigator.pop(context);
+          allright = true;
         } else {
           if (!mounted) return;
           mostrarSnackBar(context, "E-mail já cadastrado!");
         }
       });
+      if (allright && mounted) Navigator.pop(context);
     }
   }
 
@@ -50,6 +51,7 @@ class _SignUpState extends State<SignUp> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: TextFormField(
+                autofocus: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return "Este campo não pode ser vazio.";
