@@ -61,9 +61,15 @@ class _HomeState extends State<Home> {
             ),
           ),
           SizedBox(height: 15),
-          // Card(
-          //   child: ,
-          // ),
+          Card(
+            child: ListTile(
+              title: Text("Nome do grupo"),
+              onTap: () {
+                Navigator.of(context).pushNamed("/group");
+              },
+              dense: true,
+            ),
+          ),
           Center(
             child: Column(
               children: [

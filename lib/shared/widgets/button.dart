@@ -9,12 +9,12 @@ class Button extends StatelessWidget {
   Widget build(BuildContext context) {
     return FilledButton(
       onPressed: onTap,
-      child: Text(label),
       style: ButtonStyle(
         padding: WidgetStatePropertyAll(
           EdgeInsets.symmetric(horizontal: 60, vertical: 20),
         ),
       ),
+      child: Text(label),
     );
   }
 }
