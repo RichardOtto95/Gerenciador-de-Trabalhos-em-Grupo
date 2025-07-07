@@ -80,7 +80,7 @@ class UsuarioRepository {
       INSERT INTO usuarios (id, nome, email, senha_hash, foto_perfil, bio, ativo, data_criacao, data_atualizacao, ultimo_login)
       VALUES (@id, @nome, @email, @senha_hash, @foto_perfil, @bio, @ativo, @data_criacao, @data_atualizacao, @ultimo_login);
     ''';
-    await _connection.execute(query, parameters: usuario.toMap());
+    await _connection.execute(Sql.named(query), parameters: usuario.toMap());
     print('Usuário "${usuario.nome}" criado.');
   }
 
@@ -130,7 +130,7 @@ class UsuarioRepository {
   /// Retorna um usuário pelo seu email.
   Future<Usuario?> getUsuarioByEmail(String email) async {
     final result = await _connection.execute(
-      'SELECT * FROM usuarios WHERE email = @email;',
+      Sql.named('SELECT * FROM usuarios WHERE email = @email;'),
       parameters: {'email': email},
     );
     if (result.isNotEmpty) {

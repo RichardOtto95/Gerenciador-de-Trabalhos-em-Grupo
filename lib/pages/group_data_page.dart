@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:trabalho_bd/shared/design_helper.dart';
+import 'package:trabalho_bd/shared/functions.dart';
 
 class GroupData extends StatefulWidget {
   const GroupData({super.key});
