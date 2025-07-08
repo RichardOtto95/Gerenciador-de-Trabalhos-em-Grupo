@@ -87,7 +87,9 @@ class TarefaRotuloRepository {
     String rotuloId,
   ) async {
     final result = await _connection.execute(
-      Sql.named('SELECT * FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;'),
+      Sql.named(
+        'SELECT * FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;',
+      ),
       parameters: {'tarefa_id': tarefaId, 'rotulo_id': rotuloId},
     );
     if (result.isNotEmpty) {
@@ -113,14 +115,18 @@ class TarefaRotuloRepository {
   /// Remove um rótulo específico de uma tarefa.
   Future<void> removeRotuloFromTarefa(String tarefaId, String rotuloId) async {
     await _connection.execute(
-      Sql.named('DELETE FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;'),
+      Sql.named(
+        'DELETE FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;',
+      ),
       parameters: {'tarefa_id': tarefaId, 'rotulo_id': rotuloId},
     );
     print('Rótulo $rotuloId removido da tarefa $tarefaId.');
   }
 
   /// Obtém rótulos completos de uma tarefa (com detalhes do rótulo)
-  Future<List<Map<String, dynamic>>> getRotulosCompletosFromTarefa(String tarefaId) async {
+  Future<List<Map<String, dynamic>>> getRotulosCompletosFromTarefa(
+    String tarefaId,
+  ) async {
     final query = '''
       SELECT 
         r.id,
@@ -138,17 +144,24 @@ class TarefaRotuloRepository {
       parameters: {'tarefa_id': tarefaId},
     );
 
-    return result.map((row) => {
-      'id': row[0],
-      'nome': row[1],
-      'descricao': row[2],
-      'cor': row[3],
-    }).toList();
+    return result
+        .map(
+          (row) => {
+            'id': row[0],
+            'nome': row[1],
+            'descricao': row[2],
+            'cor': row[3],
+          },
+        )
+        .toList();
   }
 
   /// Aplica múltiplos rótulos a uma tarefa
-  Future<void> aplicarRotulosNaTarefa(String tarefaId, List<String> rotulosIds) async {
-    if (rotulosIds.isEmpty) return;
+  Future<void> aplicarRotulosNaTarefa(
+    String tarefaId,
+    List<String> rotulosIds,
+  ) async {
+    // if (rotulosIds.isEmpty) return;
 
     // Primeiro remove todos os rótulos existentes
     await _connection.execute(
@@ -166,7 +179,9 @@ class TarefaRotuloRepository {
   /// Verifica se uma tarefa já tem um rótulo específico
   Future<bool> tarefaTemRotulo(String tarefaId, String rotuloId) async {
     final result = await _connection.execute(
-      Sql.named('SELECT COUNT(*) FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;'),
+      Sql.named(
+        'SELECT COUNT(*) FROM tarefas_rotulos WHERE tarefa_id = @tarefa_id AND rotulo_id = @rotulo_id;',
+      ),
       parameters: {'tarefa_id': tarefaId, 'rotulo_id': rotuloId},
     );
     return (result.first[0] as int) > 0;

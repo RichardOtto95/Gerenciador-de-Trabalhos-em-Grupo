@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_bd/db/models/rotulo_model.dart';
 import 'package:trabalho_bd/db/models/atividade_model.dart';
-import 'package:trabalho_bd/shared/constants.dart';
-import 'package:trabalho_bd/shared/functions.dart';
 
 class LabelManagementPage extends StatefulWidget {
   final String grupoId;
   final String usuarioId;
 
   const LabelManagementPage({
-    Key? key,
+    super.key,
     required this.grupoId,
     required this.usuarioId,
-  }) : super(key: key);
+  });
 
   @override
   State<LabelManagementPage> createState() => _LabelManagementPageState();
@@ -67,7 +65,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
 
   Future<void> _loadRotulos() async {
     try {
-      final rotulos = await _rotuloRepository.getRotulosByGrupoId(widget.grupoId);
+      final rotulos = await _rotuloRepository.getRotulosByGrupoId(
+        widget.grupoId,
+      );
       setState(() {
         _rotulos = rotulos;
         _rotulosFiltered = rotulos;
@@ -78,16 +78,18 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar rótulos: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao carregar rótulos: $e')));
       }
     }
   }
 
   Future<void> _loadEstatisticas() async {
     try {
-      final estatisticas = await _rotuloRepository.getEstatisticasRotulosGrupo(widget.grupoId);
+      final estatisticas = await _rotuloRepository.getEstatisticasRotulosGrupo(
+        widget.grupoId,
+      );
       setState(() {
         _estatisticas = estatisticas;
       });
@@ -109,9 +111,11 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
   Future<void> _showCreateEditDialog({Rotulo? rotulo}) async {
     final isEditing = rotulo != null;
     final titleController = TextEditingController(text: rotulo?.nome ?? '');
-    final descriptionController = TextEditingController(text: rotulo?.descricao ?? '');
-    Color selectedColor = rotulo != null 
-        ? _stringToColor(rotulo.cor) 
+    final descriptionController = TextEditingController(
+      text: rotulo?.descricao ?? '',
+    );
+    Color selectedColor = rotulo != null
+        ? _stringToColor(rotulo.cor)
         : _coresPredefinidas[0];
 
     await showDialog(
@@ -142,7 +146,10 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                   textCapitalization: TextCapitalization.sentences,
                 ),
                 const SizedBox(height: 16),
-                const Text('Cor do Rótulo:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Cor do Rótulo:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -157,7 +164,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                           color: color,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: selectedColor == color ? Colors.black : Colors.grey,
+                            color: selectedColor == color
+                                ? Colors.black
+                                : Colors.grey,
                             width: selectedColor == color ? 3 : 1,
                           ),
                         ),
@@ -168,14 +177,19 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                 const SizedBox(height: 16),
                 // Preview do rótulo
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: selectedColor.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: selectedColor),
                   ),
                   child: Text(
-                    titleController.text.isEmpty ? 'Preview' : titleController.text,
+                    titleController.text.isEmpty
+                        ? 'Preview'
+                        : titleController.text,
                     style: TextStyle(
                       color: selectedColor,
                       fontWeight: FontWeight.bold,
@@ -194,7 +208,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
               onPressed: () async {
                 if (titleController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Nome do rótulo é obrigatório')),
+                    const SnackBar(
+                      content: Text('Nome do rótulo é obrigatório'),
+                    ),
                   );
                   return;
                 }
@@ -202,23 +218,29 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                 try {
                   final nomeRotulo = titleController.text.trim();
                   final corHex = _colorToString(selectedColor);
-                  
+
                   // Verificar nome único
                   bool nomeJaExiste = false;
                   if (isEditing) {
-                    nomeJaExiste = await _rotuloRepository.hasRotuloWithSameNameForEdit(
-                      nomeRotulo, widget.grupoId, rotulo!.id
-                    );
+                    nomeJaExiste = await _rotuloRepository
+                        .hasRotuloWithSameNameForEdit(
+                          nomeRotulo,
+                          widget.grupoId,
+                          rotulo.id,
+                        );
                   } else {
-                    nomeJaExiste = await _rotuloRepository.hasRotuloWithSameName(
-                      nomeRotulo, widget.grupoId
-                    );
+                    nomeJaExiste = await _rotuloRepository
+                        .hasRotuloWithSameName(nomeRotulo, widget.grupoId);
                   }
 
                   if (nomeJaExiste) {
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Já existe um rótulo com esse nome no grupo')),
+                        const SnackBar(
+                          content: Text(
+                            'Já existe um rótulo com esse nome no grupo',
+                          ),
+                        ),
                       );
                     }
                     return;
@@ -226,16 +248,16 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
 
                   if (isEditing) {
                     rotulo.nome = nomeRotulo;
-                    rotulo.descricao = descriptionController.text.trim().isEmpty 
-                        ? null 
+                    rotulo.descricao = descriptionController.text.trim().isEmpty
+                        ? null
                         : descriptionController.text.trim();
                     rotulo.cor = corHex;
                     await _rotuloRepository.updateRotulo(rotulo);
                   } else {
                     final novoRotulo = Rotulo(
                       nome: nomeRotulo,
-                      descricao: descriptionController.text.trim().isEmpty 
-                          ? null 
+                      descricao: descriptionController.text.trim().isEmpty
+                          ? null
                           : descriptionController.text.trim(),
                       cor: corHex,
                       grupoId: widget.grupoId,
@@ -250,7 +272,8 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                       acao: isEditing ? 'atualizou' : 'criou',
                       entidadeId: widget.grupoId,
                       tipoEntidade: 'grupo',
-                      detalhes: '{"rotulo": "${titleController.text.trim()}", "acao": "${isEditing ? 'editou' : 'criou'} rótulo"}',
+                      detalhes:
+                          '{"rotulo": "${titleController.text.trim()}", "acao": "${isEditing ? 'editou' : 'criou'} rótulo"}',
                     ),
                   );
 
@@ -260,13 +283,21 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
 
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Rótulo ${isEditing ? 'editado' : 'criado'} com sucesso!')),
+                      SnackBar(
+                        content: Text(
+                          'Rótulo ${isEditing ? 'editado' : 'criado'} com sucesso!',
+                        ),
+                      ),
                     );
                   }
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erro ao ${isEditing ? 'editar' : 'criar'} rótulo: $e')),
+                      SnackBar(
+                        content: Text(
+                          'Erro ao ${isEditing ? 'editar' : 'criar'} rótulo: $e',
+                        ),
+                      ),
                     );
                   }
                 }
@@ -319,7 +350,7 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
     if (confirmed == true) {
       try {
         await _rotuloRepository.deleteRotulo(rotulo.id);
-        
+
         // Log da atividade
         await _atividadeRepository.createAtividade(
           Atividade(
@@ -341,9 +372,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erro ao excluir rótulo: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Erro ao excluir rótulo: $e')));
         }
       }
     }
@@ -389,7 +420,10 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                             children: [
                               Text(
                                 '${_estatisticas['total_rotulos'] ?? 0}',
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const Text('Rótulos'),
                             ],
@@ -399,7 +433,10 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                             children: [
                               Text(
                                 '${_estatisticas['total_tarefas_com_rotulos'] ?? 0}',
-                                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               const Text('Aplicações'),
                             ],
@@ -432,7 +469,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                               Icon(
                                 Icons.label_outline,
                                 size: 64,
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.5),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -441,7 +480,9 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                                     : 'Nenhum rótulo encontrado',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.7),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -458,31 +499,37 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                           itemBuilder: (context, index) {
                             final rotulo = _rotulosFiltered[index];
                             final cor = _stringToColor(rotulo.cor);
-                            final quantidadeTarefas = _estatisticas[rotulo.nome] ?? 0;
-                            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-                            final corAjustada = isDarkMode 
-                                ? Color.lerp(cor, Colors.white, 0.2)! 
+                            final quantidadeTarefas =
+                                _estatisticas[rotulo.nome] ?? 0;
+                            final isDarkMode =
+                                Theme.of(context).brightness == Brightness.dark;
+                            final corAjustada = isDarkMode
+                                ? Color.lerp(cor, Colors.white, 0.2)!
                                 : cor;
 
                             return Card(
-                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
                               child: ListTile(
                                 leading: Container(
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: corAjustada.withOpacity(isDarkMode ? 0.3 : 0.2),
+                                    color: corAjustada.withOpacity(
+                                      isDarkMode ? 0.3 : 0.2,
+                                    ),
                                     shape: BoxShape.circle,
                                     border: Border.all(color: corAjustada),
                                   ),
-                                  child: Icon(
-                                    Icons.label,
-                                    color: corAjustada,
-                                  ),
+                                  child: Icon(Icons.label, color: corAjustada),
                                 ),
                                 title: Text(
                                   rotulo.nome,
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -494,7 +541,10 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                                       '$quantidadeTarefas tarefa${quantidadeTarefas != 1 ? 's' : ''}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withOpacity(0.7),
                                       ),
                                     ),
                                   ],
@@ -504,12 +554,15 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
                                   children: [
                                     IconButton(
                                       icon: const Icon(Icons.edit),
-                                      onPressed: () => _showCreateEditDialog(rotulo: rotulo),
+                                      onPressed: () =>
+                                          _showCreateEditDialog(rotulo: rotulo),
                                     ),
                                     IconButton(
                                       icon: Icon(
                                         Icons.delete,
-                                        color: Theme.of(context).colorScheme.error,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
                                       ),
                                       onPressed: () => _confirmDelete(rotulo),
                                     ),
@@ -528,4 +581,4 @@ class _LabelManagementPageState extends State<LabelManagementPage> {
       ),
     );
   }
-} 
+}

@@ -14,58 +14,36 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<bool> connect() async {
-    print('🔄 Tentando conectar ao banco de dados...');
-    print('📍 Host: db_gerenciador-de-tarefas.orb.local:5432');
-    print('💾 Database: development');
-    print('👤 User: postgres');
-    
     // Lista de configurações para testar
-    final List<Map<String, dynamic>> configs = [
-      {
-        'sslMode': SslMode.disable,
-        'description': 'SSL Desabilitado'
-      },
-      {
-        'sslMode': SslMode.require,
-        'description': 'SSL Obrigatório'
-      },
-    ];
-    
-    for (final config in configs) {
-      try {
-        print('🔄 Tentativa: ${config['description']}');
-        _connection = await Connection.open(
-          Endpoint(
-            host: 'localhost',
-            port: 5432,
-            database: 'development',
-            username: 'postgres',
-            password: 'postgres',
-          ),
-          settings: ConnectionSettings(sslMode: config['sslMode']),
-        );
+    // final List<Map<String, dynamic>> configs = [
+    //   {'sslMode': SslMode.disable, 'description': 'SSL Desabilitado'},
+    //   {'sslMode': SslMode.require, 'description': 'SSL Obrigatório'},
+    // ];
 
-        print('✅ Conectado ao banco PostgreSQL com sucesso!');
-        print('✅ Configuração utilizada: ${config['description']}');
-        _isConnected = true;
-        return true;
-      } catch (e) {
-        print('❌ Falha com ${config['description']}: ${e.toString().split('\n')[0]}');
-        continue;
-      }
+    // for (final config in configs) {
+    try {
+      // print('🔄 Tentativa: ${config['description']}');
+      _connection = await Connection.open(
+        Endpoint(
+          host: 'localhost',
+          port: 5432,
+          database: 'development',
+          username: 'postgres',
+          password: 'masterkey',
+        ),
+        settings: ConnectionSettings(sslMode: SslMode.disable),
+        // settings: ConnectionSettings(sslMode: config['sslMode']),
+      );
+
+      print('✅ Conectado ao banco PostgreSQL com sucesso!');
+      // print('✅ Configuração utilizada: ${config['description']}');
+      _isConnected = true;
+      return true;
+    } catch (e) {
+      //   continue;
+      // }
     }
-    
-    print('❌ Todas as tentativas de conexão falharam!');
-    print('🔍 Diagnóstico detalhado:');
-    print('   - Host alcançável: ✅');
-    print('   - Porta 5432 aberta: ✅');
-    print('   - Possíveis causas:');
-    print('     • Senha incorreta');
-    print('     • Usuário não existe');
-    print('     • Banco "development" não existe');
-    print('     • Configuração de autenticação do PostgreSQL');
-    print('     • Problema de firewall/iptables');
-    
+
     _isConnected = false;
     return false;
   }
@@ -75,7 +53,7 @@ class DatabaseHelper {
       print('❌ Não há conexão ativa com o banco');
       return false;
     }
-    
+
     try {
       print('🔍 Testando conexão com query simples...');
       final result = await _connection.execute('SELECT 1 as test;');
@@ -112,7 +90,7 @@ class DatabaseHelper {
 
   Future<void> mainConnection() async {
     print('🚀 Iniciando conexão principal...');
-    
+
     if (!(await connect())) {
       print('❌ Falha na conexão inicial - aplicação continuará sem banco');
       return;

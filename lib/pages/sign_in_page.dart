@@ -26,7 +26,7 @@ class _SignInState extends State<SignIn> {
     } else {
       if (!mounted) return;
       if (senha == usuario.senhaHash) {
-        Navigator.of(context).pushNamed("/home", arguments: usuario);
+        Navigator.of(context).pushNamed("/groups", arguments: usuario);
       } else {
         mostrarSnackBar(context, "E-mail ou senha incorreto.");
       }

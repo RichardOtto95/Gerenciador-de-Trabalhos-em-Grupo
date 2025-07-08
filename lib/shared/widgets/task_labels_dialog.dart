@@ -10,12 +10,12 @@ class TaskLabelsDialog extends StatefulWidget {
   final String tarefaTitulo;
 
   const TaskLabelsDialog({
-    Key? key,
+    super.key,
     required this.tarefaId,
     required this.grupoId,
     required this.usuarioId,
     required this.tarefaTitulo,
-  }) : super(key: key);
+  });
 
   @override
   State<TaskLabelsDialog> createState() => _TaskLabelsDialogState();
@@ -23,7 +23,8 @@ class TaskLabelsDialog extends StatefulWidget {
 
 class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
   final RotuloRepository _rotuloRepository = RotuloRepository();
-  final TarefaRotuloRepository _tarefaRotuloRepository = TarefaRotuloRepository();
+  final TarefaRotuloRepository _tarefaRotuloRepository =
+      TarefaRotuloRepository();
   final AtividadeRepository _atividadeRepository = AtividadeRepository();
 
   List<Rotulo> _rotulosDisponiveis = [];
@@ -40,11 +41,17 @@ class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
   Future<void> _loadData() async {
     try {
       // Carregar rótulos disponíveis do grupo
-      final rotulosDisponiveis = await _rotuloRepository.getRotulosByGrupoId(widget.grupoId);
-      
+      final rotulosDisponiveis = await _rotuloRepository.getRotulosByGrupoId(
+        widget.grupoId,
+      );
+
       // Carregar rótulos já aplicados à tarefa
-      final rotulosAplicados = await _tarefaRotuloRepository.getRotulosByTarefa(widget.tarefaId);
-      final rotulosAplicadosIds = rotulosAplicados.map((tr) => tr.rotuloId).toList();
+      final rotulosAplicados = await _tarefaRotuloRepository.getRotulosByTarefa(
+        widget.tarefaId,
+      );
+      final rotulosAplicadosIds = rotulosAplicados
+          .map((tr) => tr.rotuloId)
+          .toList();
 
       setState(() {
         _rotulosDisponiveis = rotulosDisponiveis;
@@ -57,9 +64,9 @@ class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar dados: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao carregar dados: $e')));
       }
     }
   }
@@ -82,13 +89,17 @@ class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
 
       // Log das atividades
       if (rotulosAdicionados.isNotEmpty || rotulosRemovidos.isNotEmpty) {
-        final nomeRotulosAdicionados = rotulosAdicionados.map((id) {
-          return _rotulosDisponiveis.firstWhere((r) => r.id == id).nome;
-        }).join(', ');
-        
-        final nomeRotulosRemovidos = rotulosRemovidos.map((id) {
-          return _rotulosDisponiveis.firstWhere((r) => r.id == id).nome;
-        }).join(', ');
+        final nomeRotulosAdicionados = rotulosAdicionados
+            .map((id) {
+              return _rotulosDisponiveis.firstWhere((r) => r.id == id).nome;
+            })
+            .join(', ');
+
+        final nomeRotulosRemovidos = rotulosRemovidos
+            .map((id) {
+              return _rotulosDisponiveis.firstWhere((r) => r.id == id).nome;
+            })
+            .join(', ');
 
         String detalhes = '{"tarefa": "${widget.tarefaTitulo}"';
         if (rotulosAdicionados.isNotEmpty) {
@@ -110,12 +121,15 @@ class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
         );
       }
 
-      Navigator.pop(context, true); // Retorna true para indicar que houve mudanças
+      Navigator.pop(
+        context,
+        true,
+      ); // Retorna true para indicar que houve mudanças
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao aplicar rótulos: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao aplicar rótulos: $e')));
       }
     }
   }
@@ -136,156 +150,166 @@ class _TaskLabelsDialogState extends State<TaskLabelsDialog> {
               child: Center(child: CircularProgressIndicator()),
             )
           : _rotulosDisponiveis.isEmpty
-              ? const SizedBox(
-                  height: 200,
-                  child: Center(
+          ? const SizedBox(
+              height: 200,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.label_outline, size: 48, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'Nenhum rótulo disponível',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Crie rótulos no grupo primeiro',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : SizedBox(
+              width: double.maxFinite,
+              height: 400,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Selecione os rótulos para aplicar à tarefa:',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _rotulosDisponiveis.length,
+                      itemBuilder: (context, index) {
+                        final rotulo = _rotulosDisponiveis[index];
+                        final cor = _stringToColor(rotulo.cor);
+                        final isSelected = _rotulosSelected.contains(rotulo.id);
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 4),
+                          child: CheckboxListTile(
+                            value: isSelected,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                if (value == true) {
+                                  _rotulosSelected.add(rotulo.id);
+                                } else {
+                                  _rotulosSelected.remove(rotulo.id);
+                                }
+                              });
+                            },
+                            title: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Color.lerp(
+                                            cor,
+                                            Colors.white,
+                                            0.2,
+                                          )!.withOpacity(0.3)
+                                        : cor.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Color.lerp(cor, Colors.white, 0.2)!
+                                          : cor,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    rotulo.nome,
+                                    style: TextStyle(
+                                      color:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Color.lerp(cor, Colors.white, 0.2)!
+                                          : cor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: rotulo.descricao != null
+                                ? Text(
+                                    rotulo.descricao!,
+                                    style: const TextStyle(fontSize: 12),
+                                  )
+                                : null,
+                            secondary: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: cor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Resumo das mudanças
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.3),
+                      ),
+                    ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.label_outline,
-                          size: 48,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(height: 16),
                         Text(
-                          'Nenhum rótulo disponível',
-                          style: TextStyle(color: Colors.grey),
+                          'Resumo das mudanças:',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          'Crie rótulos no grupo primeiro',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          'Rótulos selecionados: ${_rotulosSelected.length}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
+                        if (_rotulosSelected.length != _rotulosAplicados.length)
+                          Text(
+                            'Anteriormente: ${_rotulosAplicados.length}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
                       ],
                     ),
                   ),
-                )
-              : SizedBox(
-                  width: double.maxFinite,
-                  height: 400,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Selecione os rótulos para aplicar à tarefa:',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _rotulosDisponiveis.length,
-                          itemBuilder: (context, index) {
-                            final rotulo = _rotulosDisponiveis[index];
-                            final cor = _stringToColor(rotulo.cor);
-                            final isSelected = _rotulosSelected.contains(rotulo.id);
-
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              child: CheckboxListTile(
-                                value: isSelected,
-                                onChanged: (bool? value) {
-                                  setState(() {
-                                    if (value == true) {
-                                      _rotulosSelected.add(rotulo.id);
-                                    } else {
-                                      _rotulosSelected.remove(rotulo.id);
-                                    }
-                                  });
-                                },
-                                title: Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).brightness == Brightness.dark
-                                            ? Color.lerp(cor, Colors.white, 0.2)!.withOpacity(0.3)
-                                            : cor.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Color.lerp(cor, Colors.white, 0.2)!
-                                              : cor,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        rotulo.nome,
-                                        style: TextStyle(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Color.lerp(cor, Colors.white, 0.2)!
-                                              : cor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: rotulo.descricao != null
-                                    ? Text(
-                                        rotulo.descricao!,
-                                        style: const TextStyle(fontSize: 12),
-                                      )
-                                    : null,
-                                secondary: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: BoxDecoration(
-                                    color: cor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      // Resumo das mudanças
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Resumo das mudanças:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Rótulos selecionados: ${_rotulosSelected.length}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            if (_rotulosSelected.length != _rotulosAplicados.length)
-                              Text(
-                                'Anteriormente: ${_rotulosAplicados.length}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
+              ),
+            ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
@@ -307,11 +331,11 @@ class TaskLabelsWidget extends StatelessWidget {
   final VoidCallback? onTap;
 
   const TaskLabelsWidget({
-    Key? key,
+    super.key,
     required this.tarefaId,
     required this.rotulos,
     this.onTap,
-  }) : super(key: key);
+  });
 
   Color _stringToColor(String colorString) {
     final hex = colorString.replaceFirst('#', '');
@@ -323,7 +347,7 @@ class TaskLabelsWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
-    
+
     if (rotulos.isEmpty) {
       return GestureDetector(
         onTap: onTap,
@@ -363,12 +387,12 @@ class TaskLabelsWidget extends StatelessWidget {
         runSpacing: 4,
         children: rotulos.map((rotulo) {
           final cor = _stringToColor(rotulo['cor']);
-          
+
           // Ajustar cor para dark mode
-          final corAjustada = isDarkMode 
-              ? Color.lerp(cor, Colors.white, 0.2)! 
+          final corAjustada = isDarkMode
+              ? Color.lerp(cor, Colors.white, 0.2)!
               : cor;
-          
+
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -389,4 +413,4 @@ class TaskLabelsWidget extends StatelessWidget {
       ),
     );
   }
-} 
+}

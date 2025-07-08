@@ -70,14 +70,14 @@ class MyApp extends StatelessWidget {
               settings: settings,
               builder: (context) => SignIn(),
             );
-          case "/home":
-            return MaterialPageRoute(
-              settings: settings,
+          // case "/home":
+          //   return MaterialPageRoute(
+          //     settings: settings,
 
-              builder: (context) {
-                return Home(usuario: settings.arguments as Usuario);
-              },
-            );
+          //     builder: (context) {
+          //       return Home(usuario: settings.arguments as Usuario);
+          //     },
+          //   );
           case "/signin":
             return MaterialPageRoute(
               settings: settings,

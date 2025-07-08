@@ -5,7 +5,6 @@ import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/db/models/atribuicao_tarefa_model.dart';
 import 'package:trabalho_bd/db/models/comentario_model.dart';
-import 'package:trabalho_bd/shared/widgets/comment_widget.dart';
 import 'package:trabalho_bd/shared/widgets/comment_input.dart';
 import 'package:trabalho_bd/shared/widgets/comment_thread_widget.dart';
 
@@ -26,7 +25,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   List<ComentarioHierarquico> _comentariosHierarquicos = [];
   bool _isLoading = true;
   bool _isLoadingComments = false;
-  
+
   // Estado para edição de comentários
   String? _editingCommentId;
   final ScrollController _scrollController = ScrollController();
@@ -34,7 +33,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     tarefa = args['tarefa'] as Tarefa;
     grupo = args['grupo'] as Grupo;
     usuario = args['usuario'] as Usuario;
@@ -55,20 +55,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     try {
       // Carrega status disponíveis
       final statusFuture = StatusTarefaRepository().getAllStatusTarefas();
-      
+
       // Carrega responsáveis da tarefa
       final responsaveisFuture = _loadResponsaveis();
-      
+
       // Carrega comentários da tarefa
       final comentariosFuture = _loadComentarios();
-      
-      final results = await Future.wait([statusFuture, responsaveisFuture, comentariosFuture]);
-      
+
+      final results = await Future.wait([
+        statusFuture,
+        responsaveisFuture,
+        comentariosFuture,
+      ]);
+
       setState(() {
         _statusDisponiveis = results[0] as List<StatusTarefa>;
         _responsaveis = results[1] as List<Usuario>;
         _comentarios = results[2] as List<ComentarioComAutor>;
-        _comentariosHierarquicos = ComentarioRepository().organizarComentariosHierarquicos(_comentarios);
+        _comentariosHierarquicos = ComentarioRepository()
+            .organizarComentariosHierarquicos(_comentarios);
         _isLoading = false;
       });
     } catch (e) {
@@ -108,7 +113,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       final comentarios = await _loadComentarios();
       setState(() {
         _comentarios = comentarios;
-        _comentariosHierarquicos = ComentarioRepository().organizarComentariosHierarquicos(comentarios);
+        _comentariosHierarquicos = ComentarioRepository()
+            .organizarComentariosHierarquicos(comentarios);
         _isLoadingComments = false;
       });
     } catch (e) {
@@ -154,7 +160,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
-  Future<void> _editarComentario(String comentarioId, String novoConteudo) async {
+  Future<void> _editarComentario(
+    String comentarioId,
+    String novoConteudo,
+  ) async {
     try {
       final comentarioAtual = _comentarios.firstWhere(
         (c) => c.id == comentarioId,
@@ -206,7 +215,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   Future<void> _excluirComentario(String comentarioId) async {
     try {
       final confirmar = await _mostrarModalConfirmacaoExclusaoComentario();
-      
+
       if (confirmar != true) {
         return;
       }
@@ -238,7 +247,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
-  Future<void> _responderComentario(String comentarioPaiId, String conteudo) async {
+  Future<void> _responderComentario(
+    String comentarioPaiId,
+    String conteudo,
+  ) async {
     try {
       final resposta = Comentario(
         tarefaId: tarefa.id,
@@ -303,14 +315,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       (s) => s.id == statusId,
       orElse: () => StatusTarefa(id: statusId, nome: "Desconhecido"),
     );
-    
+
     Color cor;
     try {
       cor = Color(int.parse(status.cor.replaceFirst('#', '0xFF')));
     } catch (e) {
       cor = Colors.grey;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -324,10 +336,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: cor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: cor, shape: BoxShape.circle),
           ),
           SizedBox(width: 8),
           Text(
@@ -347,7 +356,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     Color cor;
     String texto;
     IconData icone;
-    
+
     switch (prioridade) {
       case 1:
         cor = Colors.green;
@@ -374,7 +383,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         texto = "?";
         icone = Icons.help;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -415,10 +424,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           children: [
             Row(
               children: [
-                                 if (icon != null) ...[
-                   Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-                   SizedBox(width: 8),
-                 ],
+                if (icon != null) ...[
+                  Icon(
+                    icon,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  SizedBox(width: 8),
+                ],
                 Text(
                   title,
                   style: TextStyle(
@@ -439,20 +452,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
   String _formatarData(DateTime? data) {
     if (data == null) return 'Não definida';
-    
+
     return "${data.day.toString().padLeft(2, '0')}/"
-           "${data.month.toString().padLeft(2, '0')}/"
-           "${data.year} às "
-           "${data.hour.toString().padLeft(2, '0')}:"
-           "${data.minute.toString().padLeft(2, '0')}";
+        "${data.month.toString().padLeft(2, '0')}/"
+        "${data.year} às "
+        "${data.hour.toString().padLeft(2, '0')}:"
+        "${data.minute.toString().padLeft(2, '0')}";
   }
 
   String _formatarDataSimples(DateTime? data) {
     if (data == null) return 'Não definida';
-    
+
     return "${data.day.toString().padLeft(2, '0')}/"
-           "${data.month.toString().padLeft(2, '0')}/"
-           "${data.year}";
+        "${data.month.toString().padLeft(2, '0')}/"
+        "${data.year}";
   }
 
   @override
@@ -466,10 +479,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          tarefa.titulo,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: Text(tarefa.titulo, overflow: TextOverflow.ellipsis),
         actions: [
           // Ações serão implementadas baseadas em permissões
           PopupMenuButton<String>(
@@ -522,9 +532,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 _buildPrioridadeIndicator(tarefa.prioridade),
               ],
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Progresso
             if (tarefa.progresso > 0)
               _buildInfoCard(
@@ -553,7 +563,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ],
                 ),
               ),
-            
+
             // Descrição
             if (tarefa.descricao != null && tarefa.descricao!.isNotEmpty)
               _buildInfoCard(
@@ -564,25 +574,40 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   style: TextStyle(fontSize: 15, height: 1.5),
                 ),
               ),
-            
+
             // Datas
             _buildInfoCard(
               title: "Datas",
               icon: Icons.schedule,
               content: Column(
                 children: [
-                  _buildDataRow("Criada em:", _formatarData(tarefa.dataCriacao)),
-                  _buildDataRow("Última atualização:", _formatarData(tarefa.dataAtualizacao)),
+                  _buildDataRow(
+                    "Criada em:",
+                    _formatarData(tarefa.dataCriacao),
+                  ),
+                  _buildDataRow(
+                    "Última atualização:",
+                    _formatarData(tarefa.dataAtualizacao),
+                  ),
                   if (tarefa.dataInicio != null)
-                    _buildDataRow("Data de início:", _formatarDataSimples(tarefa.dataInicio)),
+                    _buildDataRow(
+                      "Data de início:",
+                      _formatarDataSimples(tarefa.dataInicio),
+                    ),
                   if (tarefa.dataVencimento != null)
-                    _buildDataRow("Data de vencimento:", _formatarDataSimples(tarefa.dataVencimento)),
+                    _buildDataRow(
+                      "Data de vencimento:",
+                      _formatarDataSimples(tarefa.dataVencimento),
+                    ),
                   if (tarefa.dataConclusao != null)
-                    _buildDataRow("Concluída em:", _formatarData(tarefa.dataConclusao)),
+                    _buildDataRow(
+                      "Concluída em:",
+                      _formatarData(tarefa.dataConclusao),
+                    ),
                 ],
               ),
             ),
-            
+
             // Estimativas e tempo
             if (tarefa.estimativaHoras != null || tarefa.horasTrabalhadas > 0)
               _buildInfoCard(
@@ -591,18 +616,25 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 content: Column(
                   children: [
                     if (tarefa.estimativaHoras != null)
-                      _buildDataRow("Estimativa:", "${tarefa.estimativaHoras} horas"),
-                    if (tarefa.horasTrabalhadas > 0)
-                      _buildDataRow("Horas trabalhadas:", "${tarefa.horasTrabalhadas} horas"),
-                    if (tarefa.estimativaHoras != null && tarefa.horasTrabalhadas > 0)
                       _buildDataRow(
-                        "Restante:", 
-                        "${(tarefa.estimativaHoras! - tarefa.horasTrabalhadas).toStringAsFixed(1)} horas"
+                        "Estimativa:",
+                        "${tarefa.estimativaHoras} horas",
+                      ),
+                    if (tarefa.horasTrabalhadas > 0)
+                      _buildDataRow(
+                        "Horas trabalhadas:",
+                        "${tarefa.horasTrabalhadas} horas",
+                      ),
+                    if (tarefa.estimativaHoras != null &&
+                        tarefa.horasTrabalhadas > 0)
+                      _buildDataRow(
+                        "Restante:",
+                        "${(tarefa.estimativaHoras! - tarefa.horasTrabalhadas).toStringAsFixed(1)} horas",
                       ),
                   ],
                 ),
               ),
-            
+
             // Responsáveis
             _buildInfoCard(
               title: "Responsáveis",
@@ -616,20 +648,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       ),
                     )
                   : Column(
-                      children: _responsaveis.map((usuario) => 
-                        ListTile(
-                          leading: CircleAvatar(
-                            child: Text(usuario.nome[0].toUpperCase()),
-                          ),
-                          title: Text(usuario.nome),
-                          subtitle: Text(usuario.email),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ).toList(),
+                      children: _responsaveis
+                          .map(
+                            (usuario) => ListTile(
+                              leading: CircleAvatar(
+                                child: Text(usuario.nome[0].toUpperCase()),
+                              ),
+                              title: Text(usuario.nome),
+                              subtitle: Text(usuario.email),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          )
+                          .toList(),
                     ),
             ),
-            
-                        // Sistema de Comentários com Respostas
+
+            // Sistema de Comentários com Respostas
             _buildInfoCard(
               title: "Comentários ($_totalComentarios)",
               icon: Icons.comment,
@@ -647,17 +681,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     Container(
                       padding: EdgeInsets.all(20),
                       child: Column(
-        children: [
+                        children: [
                           Icon(
                             Icons.chat_bubble_outline,
                             size: 48,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.5),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant.withOpacity(0.5),
                           ),
                           SizedBox(height: 12),
                           Text(
                             "Ainda não há comentários",
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
                             ),
@@ -666,7 +704,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           Text(
                             "Seja o primeiro a comentar!",
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant.withOpacity(0.7),
                               fontSize: 14,
                             ),
                           ),
@@ -679,8 +719,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       physics: NeverScrollableScrollPhysics(),
                       itemCount: _comentariosHierarquicos.length,
                       itemBuilder: (context, index) {
-                        final comentarioHierarquico = _comentariosHierarquicos[index];
-                        
+                        final comentarioHierarquico =
+                            _comentariosHierarquicos[index];
+
                         return Padding(
                           padding: EdgeInsets.only(bottom: 16),
                           child: CommentThreadWidget(
@@ -689,8 +730,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                             editingCommentId: _editingCommentId,
                             onEdit: (comentarioId) {
                               setState(() {
-                                _editingCommentId = _editingCommentId == comentarioId 
-                                    ? null 
+                                _editingCommentId =
+                                    _editingCommentId == comentarioId
+                                    ? null
                                     : comentarioId;
                               });
                             },
@@ -701,9 +743,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         );
                       },
                     ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   // Input para novo comentário principal
                   if (_editingCommentId == null)
                     CommentInput(
@@ -713,7 +755,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 ],
               ),
             ),
-            
+
             // Placeholder para anexos futuros
             _buildInfoCard(
               title: "Anexos",
@@ -736,11 +778,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     try {
       final result = await Navigator.of(context).pushNamed(
         "/task-edit",
-        arguments: {
-          'tarefa': tarefa,
-          'grupo': grupo,
-          'usuario': usuario,
-        },
+        arguments: {'tarefa': tarefa, 'grupo': grupo, 'usuario': usuario},
       );
 
       // Se a tarefa foi atualizada, recarregar os dados
@@ -763,7 +801,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     try {
       // Verificar permissões - criador ou admin
       final temPermissao = _verificarPermissaoExclusao();
-      
+
       if (!temPermissao) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -776,7 +814,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
       // Mostrar modal de confirmação
       final confirmar = await _mostrarModalConfirmacao();
-      
+
       if (confirmar != true) {
         return;
       }
@@ -886,19 +924,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 children: [
                   Text(
                     tarefa.titulo,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
-                  if (tarefa.descricao != null && tarefa.descricao!.isNotEmpty) ...[
+                  if (tarefa.descricao != null &&
+                      tarefa.descricao!.isNotEmpty) ...[
                     SizedBox(height: 8),
                     Text(
                       tarefa.descricao!,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -941,19 +974,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
-          ),
+          Text(label, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
           Text(
             value,
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
           ),
         ],
       ),

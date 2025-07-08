@@ -20,21 +20,19 @@ class _SignUpState extends State<SignUp> {
   void save() async {
     if (formKey.currentState!.validate()) {
       bool allright = false;
-      await executeWithLoad(context, () async {
-        final repo = UsuarioRepository();
-        final usuario = await repo.getUsuarioByEmail(email);
-        if (usuario == null) {
-          await repo.createUsuario(
-            Usuario(nome: nome, email: email, senhaHash: senha),
-          );
-          if (!mounted) return;
-          mostrarSnackBar(context, "Usuário $nome criado!");
-          allright = true;
-        } else {
-          if (!mounted) return;
-          mostrarSnackBar(context, "E-mail já cadastrado!");
-        }
-      });
+      final repo = UsuarioRepository();
+      final usuario = await repo.getUsuarioByEmail(email);
+      if (usuario == null) {
+        await repo.createUsuario(
+          Usuario(nome: nome, email: email, senhaHash: senha),
+        );
+        if (!mounted) return;
+        mostrarSnackBar(context, "Usuário $nome criado!");
+        allright = true;
+      } else {
+        if (!mounted) return;
+        mostrarSnackBar(context, "E-mail já cadastrado!");
+      }
       if (allright && mounted) Navigator.pop(context);
     }
   }

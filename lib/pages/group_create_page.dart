@@ -47,29 +47,22 @@ class _GroupCreateState extends State<GroupCreate> {
   }
 
   Future<void> criarGrupo() async {
-    if (participantes.length < minMembros) {
-      mostrarSnackBar(
-        context,
-        "São necessários pelos menos $minMembros membros no grupo.",
-      );
-      return;
-    }
     if (participantes.length > maxMembros) {
       mostrarSnackBar(context, "Há mais usuários do que o máximo estabelecido");
       return;
     }
-    
+
     if (formKey.currentState!.validate()) {
       await executeWithLoad(context, () async {
         try {
           final grupoRepo = GrupoRepository();
-          
+
           // Validar nome único por usuário
           final hasExistingGroup = await grupoRepo.hasGroupWithSameName(
-            widget.criador.id, 
-            nome
+            widget.criador.id,
+            nome,
           );
-          
+
           if (hasExistingGroup) {
             if (mounted) {
               mostrarSnackBar(
@@ -79,7 +72,7 @@ class _GroupCreateState extends State<GroupCreate> {
             }
             return;
           }
-          
+
           // Criar o grupo
           final grupo = Grupo(
             nome: nome,
@@ -100,7 +93,9 @@ class _GroupCreateState extends State<GroupCreate> {
             final usuarioGrupo = UsuarioGrupo(
               usuarioId: participante.id,
               grupoId: grupo.id,
-              papel: i == 0 ? 'admin' : 'membro', // Primeiro usuário (criador) é admin
+              papel: i == 0
+                  ? 'admin'
+                  : 'membro', // Primeiro usuário (criador) é admin
               ativo: true,
             );
 
@@ -114,7 +109,8 @@ class _GroupCreateState extends State<GroupCreate> {
             usuarioId: widget.criador.id,
             acao: 'criou',
             grupoId: grupo.id, // Added grupoId parameter
-            detalhes: '{"acao": "criacao_grupo", "nome_grupo": "${grupo.nome}", "total_membros": ${participantes.length}}', // Valid JSON string
+            detalhes:
+                '{"acao": "criacao_grupo", "nome_grupo": "${grupo.nome}", "total_membros": ${participantes.length}}', // Valid JSON string
           );
           await atividadeRepo.createAtividade(atividade);
 
@@ -127,10 +123,7 @@ class _GroupCreateState extends State<GroupCreate> {
           }
         } catch (e) {
           if (mounted) {
-            mostrarSnackBar(
-              context,
-              "Erro ao criar grupo: ${e.toString()}",
-            );
+            mostrarSnackBar(context, "Erro ao criar grupo: ${e.toString()}");
           }
         }
       });

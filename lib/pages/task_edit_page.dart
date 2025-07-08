@@ -6,8 +6,6 @@ import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/db/models/usuario_grupo_model.dart';
 import 'package:trabalho_bd/db/models/status_tarefa_model.dart';
 import 'package:trabalho_bd/db/models/atribuicao_tarefa_model.dart';
-import 'package:trabalho_bd/shared/functions.dart';
-import 'package:trabalho_bd/shared/widgets/button.dart';
 import 'package:trabalho_bd/shared/widgets/assignee_selector.dart';
 
 class TaskEdit extends StatefulWidget {
@@ -56,7 +54,7 @@ class _TaskEditState extends State<TaskEdit> {
   @override
   void initState() {
     super.initState();
-    
+
     // Inicializar com dados da tarefa existente
     titulo = widget.tarefa.titulo;
     descricao = widget.tarefa.descricao ?? '';
@@ -70,7 +68,7 @@ class _TaskEditState extends State<TaskEdit> {
     tituloController = TextEditingController(text: titulo);
     descricaoController = TextEditingController(text: descricao);
     estimativaController = TextEditingController(
-      text: estimativaHoras?.toString() ?? ''
+      text: estimativaHoras?.toString() ?? '',
     );
     progressoController = TextEditingController(text: progresso.toString());
 
@@ -107,13 +105,17 @@ class _TaskEditState extends State<TaskEdit> {
       // Carregar membros do grupo
       final usuarioGrupoRepo = UsuarioGrupoRepository();
       final usuarioRepo = UsuarioRepository();
-      
-      final usuariosGrupo = await usuarioGrupoRepo.getUsuariosByGrupo(widget.grupo.id);
-      
+
+      final usuariosGrupo = await usuarioGrupoRepo.getUsuariosByGrupo(
+        widget.grupo.id,
+      );
+
       List<Usuario> usuarios = [];
       for (var usuarioGrupo in usuariosGrupo) {
         if (usuarioGrupo.ativo) {
-          final usuario = await usuarioRepo.getUsuarioById(usuarioGrupo.usuarioId);
+          final usuario = await usuarioRepo.getUsuarioById(
+            usuarioGrupo.usuarioId,
+          );
           if (usuario != null) {
             usuarios.add(usuario);
           }
@@ -122,8 +124,10 @@ class _TaskEditState extends State<TaskEdit> {
 
       // Carregar responsáveis atuais da tarefa
       final atribuicaoRepo = AtribuicaoTarefaRepository();
-      final responsaveisAtuais = await atribuicaoRepo.getResponsaveisByTarefa(widget.tarefa.id);
-      
+      final responsaveisAtuais = await atribuicaoRepo.getResponsaveisByTarefa(
+        widget.tarefa.id,
+      );
+
       setState(() {
         membrosGrupo = usuarios;
         responsavelIds = responsaveisAtuais.map((user) => user.id).toList();
@@ -192,16 +196,13 @@ class _TaskEditState extends State<TaskEdit> {
       );
 
       // Feedback positivo
-      final mensagem = responsavelIds.isEmpty 
+      final mensagem = responsavelIds.isEmpty
           ? "Tarefa atualizada com sucesso!"
           : "Tarefa atualizada e atribuída a ${responsavelIds.length} responsáve${responsavelIds.length == 1 ? 'l' : 'is'}!";
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(mensagem),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text(mensagem), backgroundColor: Colors.green),
         );
 
         // Voltar para página de detalhes com tarefa atualizada
@@ -293,11 +294,13 @@ class _TaskEditState extends State<TaskEdit> {
                       items: statusDisponiveis.map((status) {
                         Color cor;
                         try {
-                          cor = Color(int.parse(status.cor.replaceFirst('#', '0xFF')));
+                          cor = Color(
+                            int.parse(status.cor.replaceFirst('#', '0xFF')),
+                          );
                         } catch (e) {
                           cor = Colors.grey;
                         }
-                        
+
                         return DropdownMenuItem<int>(
                           value: status.id,
                           child: Row(
@@ -344,7 +347,10 @@ class _TaskEditState extends State<TaskEdit> {
                           value: 1,
                           child: Row(
                             children: [
-                              Icon(Icons.keyboard_arrow_down, color: Colors.green),
+                              Icon(
+                                Icons.keyboard_arrow_down,
+                                color: Colors.green,
+                              ),
                               SizedBox(width: 8),
                               Text("Baixa"),
                             ],
@@ -364,7 +370,10 @@ class _TaskEditState extends State<TaskEdit> {
                           value: 3,
                           child: Row(
                             children: [
-                              Icon(Icons.keyboard_arrow_up, color: Colors.orange),
+                              Icon(
+                                Icons.keyboard_arrow_up,
+                                color: Colors.orange,
+                              ),
                               SizedBox(width: 8),
                               Text("Alta"),
                             ],
@@ -394,7 +403,10 @@ class _TaskEditState extends State<TaskEdit> {
                     InkWell(
                       onTap: _selecionarData,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(4),
@@ -408,11 +420,11 @@ class _TaskEditState extends State<TaskEdit> {
                                 dataVencimento == null
                                     ? "Selecionar data de vencimento"
                                     : "Vencimento: ${dataVencimento!.day.toString().padLeft(2, '0')}/"
-                                      "${dataVencimento!.month.toString().padLeft(2, '0')}/"
-                                      "${dataVencimento!.year}",
+                                          "${dataVencimento!.month.toString().padLeft(2, '0')}/"
+                                          "${dataVencimento!.year}",
                                 style: TextStyle(
-                                  color: dataVencimento == null 
-                                      ? Colors.grey[600] 
+                                  color: dataVencimento == null
+                                      ? Colors.grey[600]
                                       : Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
@@ -442,9 +454,13 @@ class _TaskEditState extends State<TaskEdit> {
                         prefixIcon: Icon(Icons.timer),
                         suffixText: "horas",
                       ),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
                       ],
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
@@ -479,9 +495,7 @@ class _TaskEditState extends State<TaskEdit> {
                         suffixText: "%",
                       ),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                      ],
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Progresso é obrigatório';
@@ -561,4 +575,4 @@ class _TaskEditState extends State<TaskEdit> {
             ),
     );
   }
-} 
+}

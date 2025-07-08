@@ -9,11 +9,7 @@ import 'package:trabalho_bd/db/models/rotulo_model.dart';
 import 'package:trabalho_bd/shared/widgets/task_labels_dialog.dart';
 
 class GroupPage extends StatefulWidget {
-  const GroupPage({
-    super.key, 
-    required this.grupo,
-    required this.usuario,
-  });
+  const GroupPage({super.key, required this.grupo, required this.usuario});
 
   final Grupo grupo;
   final Usuario usuario;
@@ -29,11 +25,11 @@ class _GroupPageState extends State<GroupPage> {
   int? _filterPrioridade;
   List<String> _filterRotulos = []; // IDs dos rótulos selecionados para filtro
   String _ordenacao = 'prioridade'; // 'prioridade', 'data', 'titulo'
-  
+
   final TextEditingController _searchController = TextEditingController();
   List<StatusTarefa> _statusDisponiveis = [];
   List<Rotulo> _rotulosDisponiveis = [];
-  
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +56,9 @@ class _GroupPageState extends State<GroupPage> {
 
   Future<void> _loadRotulosDisponiveis() async {
     try {
-      final rotulos = await RotuloRepository().getRotulosByGrupoId(widget.grupo.id);
+      final rotulos = await RotuloRepository().getRotulosByGrupoId(
+        widget.grupo.id,
+      );
       setState(() {
         _rotulosDisponiveis = rotulos;
       });
@@ -72,7 +70,9 @@ class _GroupPageState extends State<GroupPage> {
   Future<int> _contarResponsaveis(String tarefaId) async {
     try {
       final atribuicaoRepo = AtribuicaoTarefaRepository();
-      final responsaveis = await atribuicaoRepo.getResponsaveisByTarefa(tarefaId);
+      final responsaveis = await atribuicaoRepo.getResponsaveisByTarefa(
+        tarefaId,
+      );
       return responsaveis.length;
     } catch (e) {
       print('Erro ao contar responsáveis: $e');
@@ -80,10 +80,14 @@ class _GroupPageState extends State<GroupPage> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _carregarRotulosTarefa(String tarefaId) async {
+  Future<List<Map<String, dynamic>>> _carregarRotulosTarefa(
+    String tarefaId,
+  ) async {
     try {
       final tarefaRotuloRepo = TarefaRotuloRepository();
-      final rotulos = await tarefaRotuloRepo.getRotulosCompletosFromTarefa(tarefaId);
+      final rotulos = await tarefaRotuloRepo.getRotulosCompletosFromTarefa(
+        tarefaId,
+      );
       return rotulos;
     } catch (e) {
       print('Erro ao carregar rótulos: $e');
@@ -139,8 +143,12 @@ class _GroupPageState extends State<GroupPage> {
                           itemCount: _rotulosDisponiveis.length,
                           itemBuilder: (context, index) {
                             final rotulo = _rotulosDisponiveis[index];
-                            final isSelected = _filterRotulos.contains(rotulo.id);
-                            final cor = Color(int.parse(rotulo.cor.replaceFirst('#', '0xFF')));
+                            final isSelected = _filterRotulos.contains(
+                              rotulo.id,
+                            );
+                            final cor = Color(
+                              int.parse(rotulo.cor.replaceFirst('#', '0xFF')),
+                            );
 
                             return CheckboxListTile(
                               value: isSelected,
@@ -167,7 +175,7 @@ class _GroupPageState extends State<GroupPage> {
                                   Expanded(child: Text(rotulo.nome)),
                                 ],
                               ),
-                              subtitle: rotulo.descricao != null 
+                              subtitle: rotulo.descricao != null
                                   ? Text(
                                       rotulo.descricao!,
                                       style: const TextStyle(fontSize: 12),
@@ -213,12 +221,9 @@ class _GroupPageState extends State<GroupPage> {
     final resultado = await Navigator.pushNamed(
       context,
       "/task-create",
-      arguments: {
-        'grupo': widget.grupo,
-        'criador': widget.usuario,
-      },
+      arguments: {'grupo': widget.grupo, 'criador': widget.usuario},
     );
-    
+
     // Se uma tarefa foi criada, atualiza a lista
     if (resultado == true) {
       setState(() {});
@@ -228,7 +233,7 @@ class _GroupPageState extends State<GroupPage> {
   Widget _buildPrioridadeIndicator(int prioridade) {
     Color cor;
     String texto;
-    
+
     switch (prioridade) {
       case 1:
         cor = Colors.green;
@@ -250,7 +255,7 @@ class _GroupPageState extends State<GroupPage> {
         cor = Colors.grey;
         texto = "?";
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -270,14 +275,14 @@ class _GroupPageState extends State<GroupPage> {
       (s) => s.id == statusId,
       orElse: () => StatusTarefa(id: statusId, nome: "Desconhecido"),
     );
-    
+
     Color cor;
     try {
       cor = Color(int.parse(status.cor.replaceFirst('#', '0xFF')));
     } catch (e) {
       cor = Colors.grey;
     }
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -294,7 +299,7 @@ class _GroupPageState extends State<GroupPage> {
 
   List<Tarefa> _filtrarEOrdenarTarefas(List<Tarefa> tarefas) {
     List<Tarefa> resultado = tarefas;
-    
+
     // Aplicar filtros
     if (_searchQuery.isNotEmpty) {
       resultado = resultado.where((tarefa) {
@@ -304,13 +309,17 @@ class _GroupPageState extends State<GroupPage> {
         return titulo.contains(query) || descricao.contains(query);
       }).toList();
     }
-    
+
     if (_filterStatus != null) {
-      resultado = resultado.where((tarefa) => tarefa.statusId == _filterStatus).toList();
+      resultado = resultado
+          .where((tarefa) => tarefa.statusId == _filterStatus)
+          .toList();
     }
-    
+
     if (_filterPrioridade != null) {
-      resultado = resultado.where((tarefa) => tarefa.prioridade == _filterPrioridade).toList();
+      resultado = resultado
+          .where((tarefa) => tarefa.prioridade == _filterPrioridade)
+          .toList();
     }
 
     // Aplicar ordenação
@@ -329,7 +338,7 @@ class _GroupPageState extends State<GroupPage> {
         resultado.sort((a, b) => a.titulo.compareTo(b.titulo));
         break;
     }
-    
+
     return resultado;
   }
 
@@ -340,18 +349,22 @@ class _GroupPageState extends State<GroupPage> {
 
     final tarefaRotuloRepo = TarefaRotuloRepository();
     final tarefasFiltradas = <Tarefa>[];
-    
+
     for (final tarefa in tarefas) {
-      final rotulosTarefa = await tarefaRotuloRepo.getRotulosByTarefa(tarefa.id);
+      final rotulosTarefa = await tarefaRotuloRepo.getRotulosByTarefa(
+        tarefa.id,
+      );
       final rotulosIdsTarefa = rotulosTarefa.map((tr) => tr.rotuloId).toList();
-      
+
       // Verifica se a tarefa tem pelo menos um dos rótulos selecionados
-      final temRotuloSelecionado = _filterRotulos.any((rotuloId) => rotulosIdsTarefa.contains(rotuloId));
+      final temRotuloSelecionado = _filterRotulos.any(
+        (rotuloId) => rotulosIdsTarefa.contains(rotuloId),
+      );
       if (temRotuloSelecionado) {
         tarefasFiltradas.add(tarefa);
       }
     }
-    
+
     return tarefasFiltradas;
   }
 
@@ -387,9 +400,9 @@ class _GroupPageState extends State<GroupPage> {
               });
             },
           ),
-          
+
           SizedBox(height: 12),
-          
+
           // Filtros em duas linhas para evitar overflow
           Column(
             children: [
@@ -404,17 +417,22 @@ class _GroupPageState extends State<GroupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                       ),
                       items: [
                         DropdownMenuItem<int?>(
                           value: null,
                           child: Text('Todos'),
                         ),
-                        ..._statusDisponiveis.map((status) => DropdownMenuItem<int?>(
-                          value: status.id,
-                          child: Text(status.nome),
-                        )),
+                        ..._statusDisponiveis.map(
+                          (status) => DropdownMenuItem<int?>(
+                            value: status.id,
+                            child: Text(status.nome),
+                          ),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -423,9 +441,9 @@ class _GroupPageState extends State<GroupPage> {
                       },
                     ),
                   ),
-                  
+
                   SizedBox(width: 12),
-                  
+
                   Expanded(
                     child: DropdownButtonFormField<int?>(
                       value: _filterPrioridade,
@@ -434,14 +452,23 @@ class _GroupPageState extends State<GroupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                       ),
                       items: [
-                        DropdownMenuItem<int?>(value: null, child: Text('Todas')),
+                        DropdownMenuItem<int?>(
+                          value: null,
+                          child: Text('Todas'),
+                        ),
                         DropdownMenuItem<int?>(value: 1, child: Text('Baixa')),
                         DropdownMenuItem<int?>(value: 2, child: Text('Normal')),
                         DropdownMenuItem<int?>(value: 3, child: Text('Alta')),
-                        DropdownMenuItem<int?>(value: 4, child: Text('Urgente')),
+                        DropdownMenuItem<int?>(
+                          value: 4,
+                          child: Text('Urgente'),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -452,9 +479,9 @@ class _GroupPageState extends State<GroupPage> {
                   ),
                 ],
               ),
-              
+
               SizedBox(height: 12),
-              
+
               // Segunda linha: Ordenação e Rótulos
               Row(
                 children: [
@@ -466,12 +493,24 @@ class _GroupPageState extends State<GroupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                       ),
                       items: [
-                        DropdownMenuItem(value: 'prioridade', child: Text('Prioridade')),
-                        DropdownMenuItem(value: 'data', child: Text('Data de vencimento')),
-                        DropdownMenuItem(value: 'titulo', child: Text('Título (A-Z)')),
+                        DropdownMenuItem(
+                          value: 'prioridade',
+                          child: Text('Prioridade'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'data',
+                          child: Text('Data de vencimento'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'titulo',
+                          child: Text('Título (A-Z)'),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -480,15 +519,18 @@ class _GroupPageState extends State<GroupPage> {
                       },
                     ),
                   ),
-                  
+
                   SizedBox(width: 12),
-                  
+
                   // Filtro por rótulos
                   Expanded(
                     child: GestureDetector(
                       onTap: _mostrarFiltroRotulos,
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade400),
                           borderRadius: BorderRadius.circular(12),
@@ -499,7 +541,7 @@ class _GroupPageState extends State<GroupPage> {
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                _filterRotulos.isEmpty 
+                                _filterRotulos.isEmpty
                                     ? 'Filtrar rótulos'
                                     : '${_filterRotulos.length} rótulo${_filterRotulos.length != 1 ? 's' : ''}',
                                 style: TextStyle(fontSize: 14),
@@ -626,7 +668,7 @@ class _GroupPageState extends State<GroupPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
-          
+
           if (snapshot.hasError) {
             return Center(
               child: Column(
@@ -644,14 +686,14 @@ class _GroupPageState extends State<GroupPage> {
               ),
             );
           }
-          
+
           final tarefasOriginais = snapshot.data ?? [];
           final tarefasFiltradas = _filtrarEOrdenarTarefas(tarefasOriginais);
-          
+
           return Column(
             children: [
               _buildFiltersBar(),
-              
+
               Expanded(
                 child: tarefasOriginais.isEmpty
                     ? Center(
@@ -672,22 +714,30 @@ class _GroupPageState extends State<GroupPage> {
                     : FutureBuilder<List<Tarefa>>(
                         future: _aplicarFiltroRotulos(tarefasFiltradas),
                         builder: (context, labelSnapshot) {
-                          if (labelSnapshot.connectionState == ConnectionState.waiting) {
+                          if (labelSnapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
                           }
 
-                          final tarefasComRotulos = labelSnapshot.data ?? tarefasFiltradas;
+                          final tarefasComRotulos =
+                              labelSnapshot.data ?? tarefasFiltradas;
 
                           return tarefasComRotulos.isEmpty
                               ? Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.search_off, size: 48, color: Colors.grey),
+                                      Icon(
+                                        Icons.search_off,
+                                        size: 48,
+                                        color: Colors.grey,
+                                      ),
                                       SizedBox(height: 16),
                                       Text(
                                         "Nenhuma tarefa encontrada",
-                                        style: Theme.of(context).textTheme.titleMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
                                       ),
                                       SizedBox(height: 8),
                                       Text("Tente ajustar os filtros ou busca"),
@@ -695,208 +745,275 @@ class _GroupPageState extends State<GroupPage> {
                                   ),
                                 )
                               : ListView.builder(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   itemCount: tarefasComRotulos.length,
                                   itemBuilder: (context, index) {
                                     final tarefa = tarefasComRotulos[index];
-                              
-                              return Card(
-                                margin: EdgeInsets.only(bottom: 12),
-                                elevation: 2,
-                                child: InkWell(
-                                  onTap: () => Navigator.pushNamed(
-                                    context, 
-                                    "/task",
-                                    arguments: {
-                                      'tarefa': tarefa,
-                                      'grupo': widget.grupo,
-                                      'usuario': widget.usuario,
-                                    },
-                                  ).then((result) {
-                                    // Se a tarefa foi excluída, recarregar a lista
-                                    if (result == true) {
-                                      setState(() {
-                                        // Força rebuild do FutureBuilder para recarregar dados
-                                      });
-                                    }
-                                  }),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Cabeçalho da tarefa
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              tarefa.titulo,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 16,
+
+                                    return Card(
+                                      margin: EdgeInsets.only(bottom: 12),
+                                      elevation: 2,
+                                      child: InkWell(
+                                        onTap: () =>
+                                            Navigator.pushNamed(
+                                              context,
+                                              "/task",
+                                              arguments: {
+                                                'tarefa': tarefa,
+                                                'grupo': widget.grupo,
+                                                'usuario': widget.usuario,
+                                              },
+                                            ).then((result) {
+                                              // Se a tarefa foi excluída, recarregar a lista
+                                              if (result == true) {
+                                                setState(() {
+                                                  // Força rebuild do FutureBuilder para recarregar dados
+                                                });
+                                              }
+                                            }),
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              // Cabeçalho da tarefa
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      tarefa.titulo,
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        fontSize: 16,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (tarefa.progresso > 0) ...[
+                                                    SizedBox(width: 8),
+                                                    SizedBox(
+                                                      width: 24,
+                                                      height: 24,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                            value:
+                                                                tarefa
+                                                                    .progresso /
+                                                                100,
+                                                            strokeWidth: 3,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ],
                                               ),
-                                            ),
-                                          ),
-                                          if (tarefa.progresso > 0) ...[
-                                            SizedBox(width: 8),
-                                            SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator(
-                                                value: tarefa.progresso / 100,
-                                                strokeWidth: 3,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      
-                                      // Descrição
-                                      if (tarefa.descricao != null) ...[
-                                        SizedBox(height: 8),
-                                        Text(
-                                          tarefa.descricao!,
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey[600],
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                      
-                                      SizedBox(height: 12),
-                                      
-                                      // Indicadores e informações
-                                      Row(
-                                        children: [
-                                          _buildStatusIndicator(tarefa.statusId),
-                                          SizedBox(width: 8),
-                                          _buildPrioridadeIndicator(tarefa.prioridade),
-                                          
-                                          Spacer(),
-                                          
-                                          // Data de vencimento
-                                          if (tarefa.dataVencimento != null) ...[
-                                            Icon(Icons.schedule, size: 16, color: Colors.grey[600]),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              "${tarefa.dataVencimento!.day.toString().padLeft(2, '0')}/"
-                                              "${tarefa.dataVencimento!.month.toString().padLeft(2, '0')}/"
-                                              "${tarefa.dataVencimento!.year}",
-                                              style: TextStyle(
-                                                color: Colors.grey[600],
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      
-                                      // Progresso se maior que 0
-                                      if (tarefa.progresso > 0) ...[
-                                        SizedBox(height: 8),
-                                        Row(
-                                          children: [
-                                            Icon(Icons.trending_up, size: 16, color: Colors.blue),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              "${tarefa.progresso}% concluído",
-                                              style: TextStyle(
-                                                color: Colors.blue,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                      
-                                      // Responsáveis (indicador simples)
-                                      SizedBox(height: 8),
-                                      FutureBuilder<int>(
-                                        future: _contarResponsaveis(tarefa.id),
-                                        builder: (context, snapshot) {
-                                          final count = snapshot.data ?? 0;
-                                          if (count == 0) {
-                                            return Row(
-                                              children: [
-                                                Icon(Icons.person_outline, size: 14, color: Colors.grey[500]),
-                                                SizedBox(width: 4),
+
+                                              // Descrição
+                                              if (tarefa.descricao != null) ...[
+                                                SizedBox(height: 8),
                                                 Text(
-                                                  "Sem responsáveis",
+                                                  tarefa.descricao!,
+                                                  maxLines: 3,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
-                                                    color: Colors.grey[500],
-                                                    fontSize: 12,
+                                                    color: Colors.grey[600],
+                                                    fontSize: 14,
                                                   ),
                                                 ),
                                               ],
-                                            );
-                                          }
-                                          
-                                          return Row(
-                                            children: [
-                                              Icon(Icons.people, size: 14, color: Colors.green[600]),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                "$count responsáve${count == 1 ? 'l' : 'is'}",
-                                                style: TextStyle(
-                                                  color: Colors.green[600],
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
+
+                                              SizedBox(height: 12),
+
+                                              // Indicadores e informações
+                                              Row(
+                                                children: [
+                                                  _buildStatusIndicator(
+                                                    tarefa.statusId,
+                                                  ),
+                                                  SizedBox(width: 8),
+                                                  _buildPrioridadeIndicator(
+                                                    tarefa.prioridade,
+                                                  ),
+
+                                                  Spacer(),
+
+                                                  // Data de vencimento
+                                                  if (tarefa.dataVencimento !=
+                                                      null) ...[
+                                                    Icon(
+                                                      Icons.schedule,
+                                                      size: 16,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      "${tarefa.dataVencimento!.day.toString().padLeft(2, '0')}/"
+                                                      "${tarefa.dataVencimento!.month.toString().padLeft(2, '0')}/"
+                                                      "${tarefa.dataVencimento!.year}",
+                                                      style: TextStyle(
+                                                        color: Colors.grey[600],
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+
+                                              // Progresso se maior que 0
+                                              if (tarefa.progresso > 0) ...[
+                                                SizedBox(height: 8),
+                                                Row(
+                                                  children: [
+                                                    Icon(
+                                                      Icons.trending_up,
+                                                      size: 16,
+                                                      color: Colors.blue,
+                                                    ),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      "${tarefa.progresso}% concluído",
+                                                      style: TextStyle(
+                                                        color: Colors.blue,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
+                                              ],
+
+                                              // Responsáveis (indicador simples)
+                                              SizedBox(height: 8),
+                                              FutureBuilder<int>(
+                                                future: _contarResponsaveis(
+                                                  tarefa.id,
+                                                ),
+                                                builder: (context, snapshot) {
+                                                  final count =
+                                                      snapshot.data ?? 0;
+                                                  if (count == 0) {
+                                                    return Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.person_outline,
+                                                          size: 14,
+                                                          color:
+                                                              Colors.grey[500],
+                                                        ),
+                                                        SizedBox(width: 4),
+                                                        Text(
+                                                          "Sem responsáveis",
+                                                          style: TextStyle(
+                                                            color: Colors
+                                                                .grey[500],
+                                                            fontSize: 12,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  }
+
+                                                  return Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.people,
+                                                        size: 14,
+                                                        color:
+                                                            Colors.green[600],
+                                                      ),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        "$count responsáve${count == 1 ? 'l' : 'is'}",
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.green[600],
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+
+                                              // Rótulos da tarefa
+                                              SizedBox(height: 8),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child:
+                                                        FutureBuilder<
+                                                          List<
+                                                            Map<String, dynamic>
+                                                          >
+                                                        >(
+                                                          future:
+                                                              _carregarRotulosTarefa(
+                                                                tarefa.id,
+                                                              ),
+                                                          builder: (context, snapshot) {
+                                                            final rotulos =
+                                                                snapshot.data ??
+                                                                [];
+                                                            return TaskLabelsWidget(
+                                                              tarefaId:
+                                                                  tarefa.id,
+                                                              rotulos: rotulos,
+                                                              onTap: () =>
+                                                                  _gerenciarRotulosTarefa(
+                                                                    tarefa,
+                                                                  ),
+                                                            );
+                                                          },
+                                                        ),
+                                                  ),
+                                                  // Botão para gerenciar rótulos
+                                                  // GestureDetector(
+                                                  //   onTap: () =>
+                                                  //       _gerenciarRotulosTarefa(
+                                                  //         tarefa,
+                                                  //       ),
+                                                  //   child: Container(
+                                                  //     padding: EdgeInsets.all(
+                                                  //       4,
+                                                  //     ),
+                                                  //     decoration: BoxDecoration(
+                                                  //       color: Colors
+                                                  //           .grey
+                                                  //           .shade200,
+                                                  //       borderRadius:
+                                                  //           BorderRadius.circular(
+                                                  //             8,
+                                                  //           ),
+                                                  //     ),
+                                                  //     child: Icon(
+                                                  //       Icons.label_outline,
+                                                  //       size: 16,
+                                                  //       color: Colors
+                                                  //           .grey
+                                                  //           .shade600,
+                                                  //     ),
+                                                  //   ),
+                                                  // ),
+                                                ],
                                               ),
                                             ],
-                                          );
-                                        },
-                                      ),
-                                      
-                                      // Rótulos da tarefa
-                                      SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: FutureBuilder<List<Map<String, dynamic>>>(
-                                              future: _carregarRotulosTarefa(tarefa.id),
-                                              builder: (context, snapshot) {
-                                                final rotulos = snapshot.data ?? [];
-                                                return TaskLabelsWidget(
-                                                  tarefaId: tarefa.id,
-                                                  rotulos: rotulos,
-                                                  onTap: () => _gerenciarRotulosTarefa(tarefa),
-                                                );
-                                              },
-                                            ),
                                           ),
-                                          // Botão para gerenciar rótulos
-                                          GestureDetector(
-                                            onTap: () => _gerenciarRotulosTarefa(tarefa),
-                                            child: Container(
-                                              padding: EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey.shade200,
-                                                borderRadius: BorderRadius.circular(8),
-                                              ),
-                                              child: Icon(
-                                                Icons.label_outline,
-                                                size: 16,
-                                                color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-          ],
-        ),
-                                    ],
-                                  ),
-                                ),
-                                ),
-                              );
-                            },
-                          );
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
                         },
                       ),
               ),
-              
+
               // Resumo dos filtros
               if (tarefasOriginais.isNotEmpty)
                 Container(

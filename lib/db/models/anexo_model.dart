@@ -75,7 +75,7 @@ class AnexoRepository {
       INSERT INTO anexos (id, tarefa_id, usuario_id, nome_original, nome_arquivo, tipo_mime, tamanho_bytes, caminho_arquivo, data_upload)
       VALUES (@id, @tarefa_id, @usuario_id, @nome_original, @nome_arquivo, @tipo_mime, @tamanho_bytes, @caminho_arquivo, @data_upload);
     ''';
-    await _connection.execute(query, parameters: anexo.toMap());
+    await _connection.execute(Sql.named(query), parameters: anexo.toMap());
     print(
       'Anexo "${anexo.nomeOriginal}" criado para a tarefa ${anexo.tarefaId}.',
     );

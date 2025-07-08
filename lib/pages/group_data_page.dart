@@ -49,7 +49,7 @@ class _GroupDataState extends State<GroupData> {
                 await gr.deleteGrupo(widget.grupo.id);
                 await ugr.deleteGrupo(widget.grupo.id);
                 if (mounted) {
-                  Navigator.popUntil(context, ModalRoute.withName("/home"));
+                  Navigator.popUntil(context, ModalRoute.withName("/groups"));
                 }
               }
             },
