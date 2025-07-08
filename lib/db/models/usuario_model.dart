@@ -203,7 +203,7 @@ class UsuarioRepository {
   /// Deleta um usuário pelo seu ID.
   Future<void> deleteUsuario(String id) async {
     await _connection.execute(
-      'DELETE FROM usuarios WHERE id = @id;',
+      Sql.named('DELETE FROM usuarios WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Usuário com ID $id deletado.');

@@ -48,17 +48,47 @@ class Tarefa {
       descricao: map['descricao'],
       grupoId: map['grupo_id'],
       criadorId: map['criador_id'],
-      statusId: map['status_id'],
-      prioridade: map['prioridade'],
+      statusId: _parseInt(map['status_id']) ?? 1,
+      prioridade: _parseInt(map['prioridade']) ?? 2,
       dataInicio: (map['data_inicio'] as DateTime?),
       dataVencimento: (map['data_vencimento'] as DateTime?),
-      estimativaHoras: (map['estimativa_horas'] as double?),
-      horasTrabalhadas: (map['horas_trabalhadas'] as double),
-      progresso: map['progresso'],
+      estimativaHoras: _parseDouble(map['estimativa_horas']),
+      horasTrabalhadas: _parseDouble(map['horas_trabalhadas']) ?? 0.0,
+      progresso: _parseInt(map['progresso']) ?? 0,
       dataCriacao: (map['data_criacao'] as DateTime),
       dataAtualizacao: (map['data_atualizacao'] as DateTime),
       dataConclusao: (map['data_conclusao'] as DateTime?),
     );
+  }
+
+  /// Converte um valor para double de forma segura
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// Converte um valor para int de forma segura
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) {
+      try {
+        return int.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   /// Converte um objeto Tarefa em um Map para inserção/atualização no banco de dados.
@@ -82,6 +112,24 @@ class Tarefa {
     };
   }
 
+  /// Converte um objeto Tarefa em um Map para atualização no banco de dados.
+  /// Exclui campos que não devem ser atualizados ou são controlados pelo banco.
+  Map<String, dynamic> toMapForUpdate() {
+    return {
+      'id': id,
+      'titulo': titulo,
+      'descricao': descricao,
+      'status_id': statusId,
+      'prioridade': prioridade,
+      'data_inicio': dataInicio,
+      'data_vencimento': dataVencimento,
+      'estimativa_horas': estimativaHoras,
+      'horas_trabalhadas': horasTrabalhadas,
+      'progresso': progresso,
+      'data_conclusao': dataConclusao,
+    };
+  }
+
   @override
   String toString() {
     return 'Tarefa(id: $id, titulo: $titulo, statusId: $statusId, progresso: $progresso)';
@@ -100,7 +148,7 @@ class TarefaRepository {
       INSERT INTO tarefas (id, titulo, descricao, grupo_id, criador_id, status_id, prioridade, data_inicio, data_vencimento, estimativa_horas, horas_trabalhadas, progresso, data_criacao, data_atualizacao, data_conclusao)
       VALUES (@id, @titulo, @descricao, @grupo_id, @criador_id, @status_id, @prioridade, @data_inicio, @data_vencimento, @estimativa_horas, @horas_trabalhadas, @progresso, @data_criacao, @data_atualizacao, @data_conclusao);
     ''';
-    await _connection.execute(query, parameters: tarefa.toMap());
+    await _connection.execute(Sql.named(query), parameters: tarefa.toMap());
     print('Tarefa "${tarefa.titulo}" criada.');
   }
 
@@ -131,7 +179,7 @@ class TarefaRepository {
   /// Retorna uma tarefa pelo seu ID.
   Future<Tarefa?> getTarefaById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM tarefas WHERE id = @id;',
+      Sql.named('SELECT * FROM tarefas WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -171,7 +219,7 @@ class TarefaRepository {
     query +=
         ' ORDER BY prioridade DESC, data_vencimento ASC;'; // Exemplo de ordenação
 
-    final result = await _connection.execute(query, parameters: params);
+    final result = await _connection.execute(Sql.named(query), parameters: params);
     return result.map((row) {
       return Tarefa.fromMap({
         'id': row[0],
@@ -197,21 +245,20 @@ class TarefaRepository {
   Future<void> updateTarefa(Tarefa tarefa) async {
     final query = '''
       UPDATE tarefas
-      SET titulo = @titulo, descricao = @descricao, grupo_id = @grupo_id, 
-          criador_id = @criador_id, status_id = @status_id, prioridade = @prioridade,
+      SET titulo = @titulo, descricao = @descricao, status_id = @status_id, prioridade = @prioridade,
           data_inicio = @data_inicio, data_vencimento = @data_vencimento, 
           estimativa_horas = @estimativa_horas, horas_trabalhadas = @horas_trabalhadas,
           progresso = @progresso, data_atualizacao = CURRENT_TIMESTAMP, data_conclusao = @data_conclusao
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: tarefa.toMap());
+    await _connection.execute(Sql.named(query), parameters: tarefa.toMapForUpdate());
     print('Tarefa "${tarefa.titulo}" atualizada.');
   }
 
   /// Deleta uma tarefa pelo seu ID.
   Future<void> deleteTarefa(String id) async {
     await _connection.execute(
-      'DELETE FROM tarefas WHERE id = @id;',
+      Sql.named('DELETE FROM tarefas WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Tarefa com ID $id deletada.');

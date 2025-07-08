@@ -81,7 +81,7 @@ class NotificacaoRepository {
       INSERT INTO notificacoes (id, usuario_id, tipo, titulo, mensagem, entidade_tipo, entidade_id, lida, data_criacao, data_leitura)
       VALUES (@id, @usuario_id, @tipo, @titulo, @mensagem, @entidade_tipo, @entidade_id, @lida, @data_criacao, @data_leitura);
     ''';
-    await _connection.execute(query, parameters: notificacao.toMap());
+    await _connection.execute(Sql.named(query), parameters: notificacao.toMap());
     print('Notificação criada para o usuário ${notificacao.usuarioId}.');
   }
 
@@ -123,7 +123,7 @@ class NotificacaoRepository {
   /// Retorna uma notificação pelo seu ID.
   Future<Notificacao?> getNotificacaoById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM notificacoes WHERE id = @id;',
+      Sql.named('SELECT * FROM notificacoes WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -153,7 +153,7 @@ class NotificacaoRepository {
           data_leitura = @data_leitura
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: notificacao.toMap());
+    await _connection.execute(Sql.named(query), parameters: notificacao.toMap());
     print('Notificação com ID ${notificacao.id} atualizada.');
   }
 
@@ -164,14 +164,14 @@ class NotificacaoRepository {
       SET lida = TRUE, data_leitura = CURRENT_TIMESTAMP
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: {'id': id});
+    await _connection.execute(Sql.named(query), parameters: {'id': id});
     print('Notificação com ID $id marcada como lida.');
   }
 
   /// Deleta uma notificação pelo seu ID.
   Future<void> deleteNotificacao(String id) async {
     await _connection.execute(
-      'DELETE FROM notificacoes WHERE id = @id;',
+      Sql.named('DELETE FROM notificacoes WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Notificação com ID $id deletada.');

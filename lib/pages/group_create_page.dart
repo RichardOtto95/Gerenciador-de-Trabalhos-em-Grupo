@@ -4,6 +4,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
+import 'package:trabalho_bd/db/models/atividade_model.dart';
 import 'package:trabalho_bd/shared/functions.dart';
 import 'package:trabalho_bd/shared/widgets/button.dart';
 
@@ -57,40 +58,82 @@ class _GroupCreateState extends State<GroupCreate> {
       mostrarSnackBar(context, "Há mais usuários do que o máximo estabelecido");
       return;
     }
-    bool allRight = false;
+    
     if (formKey.currentState!.validate()) {
-      // try {
-      final grupoRepo = GrupoRepository();
-      final grupo = Grupo(
-        nome: nome,
-        descricao: descricao,
-        corTema: corAtual.toHexString().replaceRange(0, 2, "#"),
-        publico: publico,
-        maxMembros: maxMembros,
-        criadorId: widget.criador.id,
-      );
-      await grupoRepo.createGrupo(grupo);
+      await executeWithLoad(context, () async {
+        try {
+          final grupoRepo = GrupoRepository();
+          
+          // Validar nome único por usuário
+          final hasExistingGroup = await grupoRepo.hasGroupWithSameName(
+            widget.criador.id, 
+            nome
+          );
+          
+          if (hasExistingGroup) {
+            if (mounted) {
+              mostrarSnackBar(
+                context,
+                "Você já possui um grupo com esse nome. Escolha outro nome.",
+              );
+            }
+            return;
+          }
+          
+          // Criar o grupo
+          final grupo = Grupo(
+            nome: nome,
+            descricao: descricao,
+            corTema: corAtual.toHexString().replaceRange(0, 2, "#"),
+            publico: publico,
+            maxMembros: maxMembros,
+            criadorId: widget.criador.id,
+          );
+          await grupoRepo.createGrupo(grupo);
 
-      final usuarioGrupoRepo = UsuarioGrupoRepository();
+          final usuarioGrupoRepo = UsuarioGrupoRepository();
+          final atividadeRepo = AtividadeRepository();
 
-      for (final participante in participantes) {
-        final usuarioGrupo = UsuarioGrupo(
-          usuarioId: participante.id,
-          grupoId: grupo.id,
-          ativo: true,
-        );
+          // Adicionar usuários ao grupo
+          for (int i = 0; i < participantes.length; i++) {
+            final participante = participantes[i];
+            final usuarioGrupo = UsuarioGrupo(
+              usuarioId: participante.id,
+              grupoId: grupo.id,
+              papel: i == 0 ? 'admin' : 'membro', // Primeiro usuário (criador) é admin
+              ativo: true,
+            );
 
-        await usuarioGrupoRepo.createUsuarioGrupo(usuarioGrupo);
-      }
+            await usuarioGrupoRepo.createUsuarioGrupo(usuarioGrupo);
+          }
 
-      allRight = true;
-      // } catch (e) {
-      //   print(e);
-      // } finally {
-      if (allRight && mounted) {
-        Navigator.pop(context);
-      }
-      // }
+          // Registrar atividade de criação do grupo
+          final atividade = Atividade(
+            tipoEntidade: 'grupo',
+            entidadeId: grupo.id,
+            usuarioId: widget.criador.id,
+            acao: 'criou',
+            grupoId: grupo.id, // Added grupoId parameter
+            detalhes: '{"acao": "criacao_grupo", "nome_grupo": "${grupo.nome}", "total_membros": ${participantes.length}}', // Valid JSON string
+          );
+          await atividadeRepo.createAtividade(atividade);
+
+          if (mounted) {
+            mostrarSnackBar(
+              context,
+              "Grupo '${grupo.nome}' criado com sucesso!",
+            );
+            Navigator.pop(context);
+          }
+        } catch (e) {
+          if (mounted) {
+            mostrarSnackBar(
+              context,
+              "Erro ao criar grupo: ${e.toString()}",
+            );
+          }
+        }
+      });
     }
   }
 

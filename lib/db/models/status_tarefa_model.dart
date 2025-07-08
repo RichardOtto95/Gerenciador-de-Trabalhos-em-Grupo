@@ -63,7 +63,7 @@ class StatusTarefaRepository {
       INSERT INTO status_tarefa (id, nome, descricao, cor, ordem, ativo)
       VALUES (@id, @nome, @descricao, @cor, @ordem, @ativo);
     ''';
-    await _connection.execute(query, parameters: statusTarefa.toMap());
+    await _connection.execute(Sql.named(query), parameters: statusTarefa.toMap());
     print('Status de Tarefa "${statusTarefa.nome}" criado.');
   }
 
@@ -89,7 +89,7 @@ class StatusTarefaRepository {
   /// Retorna um status de tarefa pelo seu ID.
   Future<StatusTarefa?> getStatusTarefaById(int id) async {
     final result = await _connection.execute(
-      'SELECT * FROM status_tarefa WHERE id = @id;',
+      Sql.named('SELECT * FROM status_tarefa WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -113,14 +113,14 @@ class StatusTarefaRepository {
       SET nome = @nome, descricao = @descricao, cor = @cor, ordem = @ordem, ativo = @ativo
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: statusTarefa.toMap());
+    await _connection.execute(Sql.named(query), parameters: statusTarefa.toMap());
     print('Status de Tarefa "${statusTarefa.nome}" atualizado.');
   }
 
   /// Deleta um status de tarefa pelo seu ID.
   Future<void> deleteStatusTarefa(int id) async {
     await _connection.execute(
-      'DELETE FROM status_tarefa WHERE id = @id;',
+      Sql.named('DELETE FROM status_tarefa WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Status de Tarefa com ID $id deletado.');

@@ -85,10 +85,26 @@ class _HomeState extends State<Home> {
             ),
             SizedBox(height: 15),
             Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                "Grupos",
-                style: Theme.of(context).textTheme.titleLarge,
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Grupos",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/groups',
+                        arguments: widget.usuario,
+                      );
+                    },
+                    icon: const Icon(Icons.view_list),
+                    label: const Text('Ver todos'),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 10),
@@ -153,7 +169,10 @@ class _HomeState extends State<Home> {
                             onTap: () async {
                               await Navigator.of(
                                 context,
-                              ).pushNamed("/group", arguments: grupo);
+                              ).pushNamed("/group", arguments: {
+                                'grupo': grupo,
+                                'usuario': widget.usuario,
+                              });
                               setState(() {});
                             },
                           ),

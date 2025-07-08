@@ -1,6 +1,7 @@
 import 'package:uuid/uuid.dart';
 import 'package:postgres/postgres.dart';
 import 'package:trabalho_bd/db/db_helper.dart';
+import 'package:trabalho_bd/db/models/usuario_model.dart';
 
 /// Modelo Dart para a tabela 'atribuicoes_tarefa'.
 class AtribuicaoTarefa {
@@ -63,7 +64,7 @@ class AtribuicaoTarefaRepository {
       INSERT INTO atribuicoes_tarefa (id, tarefa_id, usuario_id, atribuido_por, data_atribuicao, ativo)
       VALUES (@id, @tarefa_id, @usuario_id, @atribuido_por, @data_atribuicao, @ativo);
     ''';
-    await _connection.execute(query, parameters: atribuicao.toMap());
+    await _connection.execute(Sql.named(query), parameters: atribuicao.toMap());
     print('Tarefa ${atribuicao.tarefaId} atribuída a ${atribuicao.usuarioId}.');
   }
 
@@ -79,7 +80,7 @@ class AtribuicaoTarefaRepository {
       query += ' AND ativo = @ativo';
       params['ativo'] = ativo;
     }
-    final result = await _connection.execute(query, parameters: params);
+    final result = await _connection.execute(Sql.named(query), parameters: params);
     return result
         .map(
           (row) => AtribuicaoTarefa.fromMap({
@@ -106,7 +107,7 @@ class AtribuicaoTarefaRepository {
       query += ' AND ativo = @ativo';
       params['ativo'] = ativo;
     }
-    final result = await _connection.execute(query, parameters: params);
+    final result = await _connection.execute(Sql.named(query), parameters: params);
     return result
         .map(
           (row) => AtribuicaoTarefa.fromMap({
@@ -124,7 +125,7 @@ class AtribuicaoTarefaRepository {
   /// Retorna uma atribuição de tarefa pelo seu ID.
   Future<AtribuicaoTarefa?> getAtribuicaoById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM atribuicoes_tarefa WHERE id = @id;',
+      Sql.named('SELECT * FROM atribuicoes_tarefa WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -148,14 +149,14 @@ class AtribuicaoTarefaRepository {
       SET tarefa_id = @tarefa_id, usuario_id = @usuario_id, atribuido_por = @atribuido_por, ativo = @ativo
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: atribuicao.toMap());
+    await _connection.execute(Sql.named(query), parameters: atribuicao.toMap());
     print('Atribuição com ID ${atribuicao.id} atualizada.');
   }
 
   /// Deleta uma atribuição de tarefa pelo seu ID.
   Future<void> deleteAtribuicaoTarefa(String id) async {
     await _connection.execute(
-      'DELETE FROM atribuicoes_tarefa WHERE id = @id;',
+      Sql.named('DELETE FROM atribuicoes_tarefa WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Atribuição com ID $id deletada.');
@@ -169,11 +170,100 @@ class AtribuicaoTarefaRepository {
       WHERE tarefa_id = @tarefa_id AND usuario_id = @usuario_id AND ativo = TRUE;
     ''';
     await _connection.execute(
-      query,
+      Sql.named(query),
       parameters: {'tarefa_id': tarefaId, 'usuario_id': usuarioId},
     );
     print(
       'Atribuição para a tarefa $tarefaId e usuário $usuarioId desativada.',
     );
+  }
+
+  /// Remove todas as atribuições ativas de uma tarefa e cria novas com a lista fornecida.
+  Future<void> syncAtribuicoesTarefa(
+    String tarefaId,
+    List<String> usuarioIds,
+    String atribuidoPor,
+  ) async {
+    // Primeiro, desativar todas as atribuições existentes
+    final queryDeactivate = '''
+      UPDATE atribuicoes_tarefa
+      SET ativo = FALSE
+      WHERE tarefa_id = @tarefa_id AND ativo = TRUE;
+    ''';
+    await _connection.execute(
+      Sql.named(queryDeactivate),
+      parameters: {'tarefa_id': tarefaId},
+    );
+
+    // Para cada usuário na nova lista
+    for (String usuarioId in usuarioIds) {
+      // Verificar se já existe uma atribuição (ativa ou inativa) para esta combinação
+      final queryCheck = '''
+        SELECT id FROM atribuicoes_tarefa 
+        WHERE tarefa_id = @tarefa_id AND usuario_id = @usuario_id;
+      ''';
+      
+      final existingResult = await _connection.execute(
+        Sql.named(queryCheck),
+        parameters: {'tarefa_id': tarefaId, 'usuario_id': usuarioId},
+      );
+
+      if (existingResult.isNotEmpty) {
+        // Atribuição já existe, apenas reativar e atualizar atribuído_por
+        final atribuicaoId = existingResult.first[0] as String;
+        final queryReactivate = '''
+          UPDATE atribuicoes_tarefa
+          SET ativo = TRUE, atribuido_por = @atribuido_por, data_atribuicao = CURRENT_TIMESTAMP
+          WHERE id = @id;
+        ''';
+        await _connection.execute(
+          Sql.named(queryReactivate),
+          parameters: {'id': atribuicaoId, 'atribuido_por': atribuidoPor},
+        );
+        print('Atribuição reativada para usuário $usuarioId na tarefa $tarefaId.');
+      } else {
+        // Atribuição não existe, criar nova
+        final atribuicao = AtribuicaoTarefa(
+          tarefaId: tarefaId,
+          usuarioId: usuarioId,
+          atribuidoPor: atribuidoPor,
+        );
+        await createAtribuicaoTarefa(atribuicao);
+        print('Nova atribuição criada para usuário $usuarioId na tarefa $tarefaId.');
+      }
+    }
+
+    print('Atribuições sincronizadas para tarefa $tarefaId com ${usuarioIds.length} responsáveis.');
+  }
+
+  /// Retorna os usuários responsáveis por uma tarefa específica.
+  Future<List<Usuario>> getResponsaveisByTarefa(String tarefaId) async {
+    final query = '''
+      SELECT u.id, u.nome, u.email, u.senha_hash, u.foto_perfil, u.bio, u.ativo, 
+             u.data_criacao, u.data_atualizacao, u.ultimo_login 
+      FROM usuarios u
+      INNER JOIN atribuicoes_tarefa at ON u.id = at.usuario_id
+      WHERE at.tarefa_id = @tarefa_id AND at.ativo = TRUE;
+    ''';
+    
+    final result = await _connection.execute(
+      Sql.named(query),
+      parameters: {'tarefa_id': tarefaId},
+    );
+    
+    return result.map((row) {
+      return Usuario.fromMap({
+        'id': row[0],
+        'nome': row[1],
+        'email': row[2],
+        'senha_hash': row[3], // Correto: usar senha_hash
+        'foto_perfil': row[4],
+        'bio': row[5],
+        'ativo': row[6],
+        'data_criacao': row[7],
+        'data_atualizacao': row[8],
+        'ultimo_login': row[9],
+      });
+    }).toList();
   }
 }

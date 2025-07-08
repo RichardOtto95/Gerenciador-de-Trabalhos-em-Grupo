@@ -8,11 +8,11 @@ class Atividade {
   String entidadeId; // ID of the entity (user, task, group, etc.)
   String usuarioId; // User who performed the activity
   String acao; // e.g., 'created', 'updated', 'deleted', 'commented'
+  String? grupoId; // Added grupo_id column
   String? detalhes;
   String? ipAddress;
   String? userAgent;
-  DateTime dataCriacao;
-  String? etapa; // For tracking a specific stage of an activity/workflow
+  DateTime dataAcao; // Changed from dataCriacao to dataAcao
 
   Atividade({
     String? id,
@@ -20,13 +20,13 @@ class Atividade {
     required this.entidadeId,
     required this.usuarioId,
     required this.acao,
+    this.grupoId, // Added grupo_id parameter
     this.detalhes,
     this.ipAddress,
     this.userAgent,
-    DateTime? dataCriacao,
-    this.etapa,
+    DateTime? dataAcao, // Changed from dataCriacao to dataAcao
   }) : id = id ?? const Uuid().v4(),
-       dataCriacao = dataCriacao ?? DateTime.now();
+       dataAcao = dataAcao ?? DateTime.now(); // Changed from dataCriacao to dataAcao
 
   factory Atividade.fromMap(Map<String, dynamic> map) {
     return Atividade(
@@ -35,11 +35,11 @@ class Atividade {
       entidadeId: map['entidade_id'],
       usuarioId: map['usuario_id'],
       acao: map['acao'],
+      grupoId: map['grupo_id'], // Added grupo_id mapping
       detalhes: map['detalhes'],
       ipAddress: map['ip_address'],
       userAgent: map['user_agent'],
-      dataCriacao: (map['data_criacao'] as DateTime),
-      etapa: map['etapa'],
+      dataAcao: (map['data_acao'] as DateTime), // Changed from data_criacao to data_acao
     );
   }
 
@@ -50,11 +50,11 @@ class Atividade {
       'entidade_id': entidadeId,
       'usuario_id': usuarioId,
       'acao': acao,
+      'grupo_id': grupoId, // Added grupo_id to map
       'detalhes': detalhes,
       'ip_address': ipAddress,
       'user_agent': userAgent,
-      'data_criacao': dataCriacao,
-      'etapa': etapa,
+      'data_acao': dataAcao, // Changed from data_criacao to data_acao
     };
   }
 
@@ -71,17 +71,17 @@ class AtividadeRepository {
 
   Future<void> createAtividade(Atividade atividade) async {
     final query = '''
-      INSERT INTO atividades (id, tipo_entidade, entidade_id, usuario_id, acao, detalhes, ip_address, user_agent, data_criacao, etapa)
-      VALUES (@id, @tipo_entidade, @entidade_id, @usuario_id, @acao, @detalhes, @ip_address, @user_agent, @data_criacao, @etapa);
+      INSERT INTO atividades (id, tipo_entidade, entidade_id, usuario_id, acao, grupo_id, detalhes, ip_address, user_agent, data_acao)
+      VALUES (@id, @tipo_entidade, @entidade_id, @usuario_id, @acao, @grupo_id, @detalhes, @ip_address, @user_agent, @data_acao);
     ''';
-    await _connection.execute(query, parameters: atividade.toMap());
+    await _connection.execute(Sql.named(query), parameters: atividade.toMap());
     print(
       'Atividade "${atividade.acao}" created for entity ${atividade.entidadeId}.',
     );
   }
 
   Future<List<Atividade>> getAllAtividades() async {
-    final result = await _connection.execute('SELECT * FROM atividades;');
+    final result = await _connection.execute(Sql.named('SELECT * FROM atividades;'));
     return result
         .map(
           (row) => Atividade.fromMap({
@@ -90,11 +90,11 @@ class AtividadeRepository {
             'entidade_id': row[2],
             'usuario_id': row[3],
             'acao': row[4],
-            'detalhes': row[5],
-            'ip_address': row[6],
-            'user_agent': row[7],
-            'data_criacao': row[8],
-            'etapa': row[9],
+            'grupo_id': row[5], // Added grupo_id
+            'detalhes': row[6], // Shifted index
+            'ip_address': row[7], // Shifted index
+            'user_agent': row[8], // Shifted index
+            'data_acao': row[9], // Shifted index
           }),
         )
         .toList();
@@ -105,7 +105,7 @@ class AtividadeRepository {
     String tipoEntidade,
   ) async {
     final result = await _connection.execute(
-      'SELECT * FROM atividades WHERE entidade_id = @entidade_id AND tipo_entidade = @tipo_entidade;',
+      Sql.named('SELECT * FROM atividades WHERE entidade_id = @entidade_id AND tipo_entidade = @tipo_entidade;'),
       parameters: {'entidade_id': entidadeId, 'tipo_entidade': tipoEntidade},
     );
     return result
@@ -116,11 +116,11 @@ class AtividadeRepository {
             'entidade_id': row[2],
             'usuario_id': row[3],
             'acao': row[4],
-            'detalhes': row[5],
-            'ip_address': row[6],
-            'user_agent': row[7],
-            'data_criacao': row[8],
-            'etapa': row[9],
+            'grupo_id': row[5], // Added grupo_id
+            'detalhes': row[6], // Shifted index
+            'ip_address': row[7], // Shifted index
+            'user_agent': row[8], // Shifted index
+            'data_acao': row[9], // Shifted index
           }),
         )
         .toList();
@@ -128,7 +128,7 @@ class AtividadeRepository {
 
   Future<Atividade?> getAtividadeById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM atividades WHERE id = @id;',
+      Sql.named('SELECT * FROM atividades WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -139,11 +139,11 @@ class AtividadeRepository {
         'entidade_id': row[2],
         'usuario_id': row[3],
         'acao': row[4],
-        'detalhes': row[5],
-        'ip_address': row[6],
-        'user_agent': row[7],
-        'data_criacao': row[8],
-        'etapa': row[9],
+        'grupo_id': row[5], // Added grupo_id
+        'detalhes': row[6], // Shifted index
+        'ip_address': row[7], // Shifted index
+        'user_agent': row[8], // Shifted index
+        'data_acao': row[9], // Shifted index
       });
     }
     return null;
@@ -156,11 +156,10 @@ class AtividadeRepository {
     final query = '''
       UPDATE atividades
       SET tipo_entidade = @tipo_entidade, entidade_id = @entidade_id, usuario_id = @usuario_id,
-          acao = @acao, detalhes = @detalhes, ip_address = @ip_address, user_agent = @user_agent,
-          etapa = @etapa
+          acao = @acao, grupo_id = @grupo_id, detalhes = @detalhes, ip_address = @ip_address, user_agent = @user_agent
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: atividade.toMap());
+    await _connection.execute(Sql.named(query), parameters: atividade.toMap());
     print('Atividade with ID ${atividade.id} updated.');
   }
 
@@ -168,7 +167,7 @@ class AtividadeRepository {
   // Implement with caution or restrict permissions.
   Future<void> deleteAtividade(String id) async {
     await _connection.execute(
-      'DELETE FROM atividades WHERE id = @id;',
+      Sql.named('DELETE FROM atividades WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Atividade with ID $id deleted (if permitted).');

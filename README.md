@@ -1,16 +1,266 @@
-# trabalho_bd
+# Gerenciador de Trabalhos em Grupo
 
-A new Flutter project.
+## 📋 User Stories Implementadas
 
-## Getting Started
+**Módulo de Grupos: 4/4 user stories principais implementadas** 
+**Módulo de Tarefas: 7/7 user stories implementadas**
+**Módulo de Rótulos: 3/3 user stories implementadas (US016-US018)**
+**Total: 14 user stories concluídas**
 
-This project is a starting point for a Flutter application.
+### ✅ US005 - Criar Grupo
+**Como** usuário logado  
+**Eu quero** criar um novo grupo de trabalho  
+**Para que** eu possa organizar tarefas por projeto/equipe  
 
-A few resources to get you started if this is your first Flutter project:
+**Critérios de Aceitação Implementados:**
+- ✅ **Nome e descrição obrigatórios** - Validação de formulário implementada
+- ✅ **Criador automaticamente vira administrador** - Primeiro usuário é definido como 'admin'
+- ✅ **Validação de nome único por usuário** - Método `hasGroupWithSameName()` implementado
+- ✅ **Log da criação do grupo** - Sistema de auditoria com `AtividadeRepository`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+**Funcionalidades Implementadas:**
+- Criação de grupos com validação completa
+- Seleção de cor personalizada para o grupo
+- Configuração de visibilidade (público/privado)
+- Definição de número máximo de membros
+- Busca e adição de membros por nome/email
+- Sistema de papéis (admin/membro)
+- Auditoria completa das ações
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+**Correções Técnicas:**
+- Corrigido SQL injection em `UsuarioGrupoRepository`
+- Implementado `Sql.named()` em todos os repositórios
+- Adicionado sistema de log de atividades
+- Validação de nomes únicos por usuário
+
+---
+
+### ✅ US006 - Visualizar Grupos
+**Como** usuário logado  
+**Eu quero** visualizar todos os grupos que participo  
+**Para que** eu possa navegar entre diferentes projetos  
+
+**Critérios de Aceitação Implementados:**
+- ✅ **Lista de grupos do usuário** - Método `getGruposDoUsuario()` implementado
+- ✅ **Informações básicas dos grupos** - Cards com nome, descrição, membros e papel
+- ✅ **Filtro por papel** - Filtrar por admin/moderador/membro
+- ✅ **Busca por nome** - Busca em tempo real por nome ou descrição
+- ✅ **Ordenação flexível** - Por data de entrada, nome ou número de membros
+- ✅ **Estatísticas visuais** - Contadores por papel do usuário
+
+**Funcionalidades Implementadas:**
+- Página dedicada de listagem de grupos (`GroupListPage`)
+- Cards visuais com informações detalhadas
+- Sistema de filtros e busca avançada
+- Estatísticas dos grupos por papel
+- Navegação integrada desde a home page
+- Indicadores visuais de papel (admin/moderador/membro)
+- Refresh pull-to-refresh
+- Estados vazios informativos
+
+**Modelo de Dados:**
+- `GrupoComInfo` - Modelo composto com grupo + informações do usuário
+- Queries otimizadas com JOIN para performance
+- Contagem de membros em tempo real
+
+---
+
+### ✅ US007 - Gerenciar Membros do Grupo
+**Como** administrador ou moderador de um grupo  
+**Eu quero** gerenciar os membros do grupo  
+**Para que** eu possa controlar quem participa e seus papéis  
+
+**Critérios de Aceitação Implementados:**
+- ✅ **Lista de membros com detalhes** - Página dedicada com informações completas
+- ✅ **Adicionar novos membros** - Busca e adição com seleção de papel
+- ✅ **Remover membros existentes** - Remoção com confirmação e validações
+- ✅ **Alterar papéis dos membros** - Mudança de papel admin/moderador/membro
+- ✅ **Validação de permissões** - Controle baseado no papel do usuário
+- ✅ **Proteções de segurança** - Não remover único admin, não auto-rebaixar
+- ✅ **Auditoria completa** - Log de todas as ações de gerenciamento
+
+**Funcionalidades Implementadas:**
+- Página dedicada de gerenciamento de membros (`GroupMembersPage`)
+- Sistema de busca de usuários não-membros
+- Diálogos interativos para adicionar e alterar papéis
+- Estatísticas visuais de membros por papel
+- Validações de negócio para proteção do grupo
+- Sistema de permissões baseado em papéis
+- Logs detalhados de todas as ações administrativas
+- Interface responsiva com feedback visual
+
+**Modelo de Dados:**
+- `MembroGrupo` - Modelo composto com usuário + informações do grupo
+- Métodos de gerenciamento no `UsuarioGrupoRepository`
+- Queries otimizadas para busca e listagem
+- Sistema de auditoria integrado
+
+**Proteções de Segurança:**
+- Usuário não pode remover a si mesmo
+- Não é possível remover o único administrador
+- Usuário não pode rebaixar seu próprio papel
+- Validação de permissões em todas as operações
+
+---
+
+### ✅ US008 - Sair do Grupo / Configurações do Grupo
+**Como** membro de um grupo  
+**Eu quero** sair de um grupo e editar suas configurações  
+**Para que** eu possa gerenciar minha participação e configurar o grupo adequadamente  
+
+**Critérios de Aceitação Implementados:**
+- ✅ **Confirmação antes de sair** - Dialog de confirmação com aviso sobre remoção de tarefas
+- ✅ **Remoção de atribuições de tarefas** - Usuário é removido de todas as tarefas do grupo automaticamente
+- ✅ **Proteção do único admin** - Único administrador não pode sair do grupo
+- ✅ **Editar informações básicas** - Nome e descrição do grupo com validação de nomes únicos
+- ✅ **Configurações avançadas** - Cor do tema, visibilidade (público/privado), máximo de membros
+- ✅ **Validação de permissões** - Apenas admin/moderador pode editar configurações
+- ✅ **Auditoria completa** - Log de todas as ações de configuração e saída
+
+**Funcionalidades Implementadas:**
+- Página dedicada de configurações (`GroupSettingsPage`)
+- Interface dividida em seções organizadas (Informações, Configurações, Ações)
+- Editor de informações básicas com validação
+- Seletor de cores para tema do grupo
+- Configuração de visibilidade (público/privado)
+- Slider para definir máximo de membros (5-200)
+- Funcionalidade de sair do grupo com validações
+- Sistema de permissões baseado em papéis
+- Logs detalhados de todas as ações
+- Navegação integrada via menu popup
+
+**Modelo de Dados e Métodos:**
+- `podeUsuarioSairDoGrupo()` - Valida se usuário pode sair (não é único admin)
+- `sairDoGrupo()` - Remove atribuições de tarefas e desativa membro
+- `temPermissaoEditarGrupo()` - Verifica permissões para editar
+- `atualizarInformacoesBasicas()` - Atualiza nome e descrição
+- `atualizarConfiguracoes()` - Atualiza configurações específicas
+- `hasGroupWithSameNameForEdit()` - Validação de nome único para edição
+
+**Proteções e Validações:**
+- Único administrador não pode sair do grupo
+- Validação de nomes únicos por usuário ao editar
+- Verificação de permissões para editar configurações
+- Remoção automática de atribuições de tarefas ao sair
+- Interface adaptativa baseada em permissões do usuário
+- Confirmação obrigatória para ações destrutivas
+
+**Integração com Sistema:**
+- Acessível via menu popup na página do grupo
+- Navegação inteligente (volta para home se usuário sair do grupo)
+- Integrado com sistema de logs de atividades
+- Atualizações em tempo real na interface
+
+---
+
+## 🔧 Funcionalidades Anteriores
+
+### ✅ Módulo de Grupos Completo
+- **US005**: Criar Grupo (com validações e auditoria)
+- **US006**: Visualizar Grupos (com filtros e estatísticas)
+- **US007**: Gerenciar Membros do Grupo (adicionar, remover, alterar papéis)
+- **US008**: Sair do Grupo / Configurações do Grupo (editar informações e configurações)
+
+### ✅ Módulo de Tarefas Completo
+- **US009**: Criar Tarefa
+- **US010**: Visualizar Lista de Tarefas  
+- **US011**: Visualizar Detalhes da Tarefa
+- **US012**: Editar Tarefa
+- **US013**: Excluir Tarefa
+- **US014**: Atribuir Responsáveis
+- **US015**: Comentários em Tarefas (incluindo respostas)
+
+---
+
+### ✅ US016-US018 - Sistema de Rótulos
+**Como** usuário de um grupo  
+**Eu quero** criar e aplicar rótulos às tarefas  
+**Para que** eu possa categorizar e filtrar tarefas de forma organizada  
+
+**Critérios de Aceitação Implementados:**
+- ✅ **US016 - Criar e Gerenciar Rótulos**
+  - ✅ Administradores e moderadores podem criar rótulos personalizados por grupo
+  - ✅ Configuração de nome, descrição e cor para cada rótulo
+  - ✅ Validação de nomes únicos por grupo
+  - ✅ Interface intuitiva com seletor de cores predefinidas
+  - ✅ Estatísticas de uso dos rótulos
+
+- ✅ **US017 - Aplicar Rótulos às Tarefas**
+  - ✅ Aplicação de múltiplos rótulos por tarefa
+  - ✅ Interface de gerenciamento com seleção múltipla
+  - ✅ Visualização dos rótulos nas listas de tarefas
+  - ✅ Remoção e edição de rótulos aplicados
+  - ✅ Log de atividades para alterações
+
+- ✅ **US018 - Filtrar Tarefas por Rótulos**
+  - ✅ Filtro por múltiplos rótulos simultaneamente
+  - ✅ Integração com filtros existentes (status, prioridade)
+  - ✅ Interface de seleção com visualização das cores
+  - ✅ Contador de tarefas filtradas
+
+**Funcionalidades Implementadas:**
+- Página dedicada de gerenciamento de rótulos (`LabelManagementPage`)
+- Dialog para aplicação de rótulos às tarefas (`TaskLabelsDialog`)
+- Widget de visualização de rótulos inline (`TaskLabelsWidget`)
+- Sistema de filtros integrado na página de grupos
+- Paleta de 19 cores predefinidas com preview em tempo real
+- Estatísticas de uso e contadores por rótulo
+- Validações de segurança e permissões
+- Auditoria completa das ações
+
+**Modelo de Dados:**
+- `Rotulo` - Modelo básico com nome, descrição, cor e grupo
+- `TarefaRotulo` - Relacionamento many-to-many tarefa-rótulo
+- `RotuloRepository` - CRUD completo com validações e estatísticas
+- `TarefaRotuloRepository` - Gerenciamento de associações e filtros
+
+**Características Visuais:**
+- Chips coloridos com bordas temáticas
+- Seletor de cores interativo
+- Preview em tempo real
+- Indicadores de estado e contadores
+- Interface responsiva e intuitiva
+
+**Segurança e Validações:**
+- Todas as queries SQL parametrizadas com `Sql.named()`
+- Validação de permissões baseada em papéis
+- Nomes únicos por grupo
+- Cascading deletes para associações
+- Auditoria integrada
+
+## 🚀 Próximas Implementações
+
+### 🔄 **Próximas Recomendações:**
+
+#### **1. US001-US004 - Sistema de Autenticação** 🔐
+- **US001**: Cadastro de usuários com validação
+- **US002**: Login com validação de credenciais
+- **US003**: Logout seguro
+- **US004**: Perfil do usuário editável
+- Substituir sistema mock atual por autenticação real
+
+#### **2. US022-US024 - Sistema de Anexos** 📎
+- **US022**: Anexar arquivos às tarefas
+- **US023**: Download seguro de anexos
+- **US024**: Gerenciar anexos (remover, visualizar)
+- Funcionalidade importante para colaboração
+
+---
+
+## 🏗️ Arquitetura Técnica
+
+### Banco de Dados
+- **PostgreSQL** com conexão direta
+- **Validação de SQL** com `Sql.named()` para segurança
+- **Sistema de Auditoria** com tabela `atividades`
+
+### Modelos Implementados
+- `Grupo` - Informações básicas do grupo
+- `UsuarioGrupo` - Relacionamento usuário-grupo com papéis
+- `Atividade` - Log de ações para auditoria
+
+### Validações
+- Nome único por usuário
+- Validação de formulários
+- Controle de permissões por papel
+- Logs automáticos de criação

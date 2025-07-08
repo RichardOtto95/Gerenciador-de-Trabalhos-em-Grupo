@@ -5,6 +5,7 @@ import 'package:postgres/postgres.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   late Connection _connection;
+  bool _isConnected = false;
 
   factory DatabaseHelper() {
     return _instance;
@@ -13,55 +14,141 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<bool> connect() async {
-    try {
-      _connection = await Connection.open(
-        Endpoint(
-          host: 'localhost',
-          port: 5432,
-          database: 'trabalho_em_grupo_bd',
-          username: 'appuser',
-          password: 'masterkey',
-        ),
-        settings: ConnectionSettings(sslMode: SslMode.disable),
-      );
+    print('🔄 Tentando conectar ao banco de dados...');
+    print('📍 Host: db_gerenciador-de-tarefas.orb.local:5432');
+    print('💾 Database: development');
+    print('👤 User: postgres');
+    
+    // Lista de configurações para testar
+    final List<Map<String, dynamic>> configs = [
+      {
+        'sslMode': SslMode.disable,
+        'description': 'SSL Desabilitado'
+      },
+      {
+        'sslMode': SslMode.require,
+        'description': 'SSL Obrigatório'
+      },
+    ];
+    
+    for (final config in configs) {
+      try {
+        print('🔄 Tentativa: ${config['description']}');
+        _connection = await Connection.open(
+          Endpoint(
+            host: 'localhost',
+            port: 5432,
+            database: 'development',
+            username: 'postgres',
+            password: 'postgres',
+          ),
+          settings: ConnectionSettings(sslMode: config['sslMode']),
+        );
 
-      print('Connected to PostgreSQL database.');
-    } on PgException catch (e) {
-      print(e);
-      if (e.message ==
-          "Socket error: FormatException: Missing extension byte (at offset 40)") {
-        print("Banco não encontrado");
-        return false;
+        print('✅ Conectado ao banco PostgreSQL com sucesso!');
+        print('✅ Configuração utilizada: ${config['description']}');
+        _isConnected = true;
+        return true;
+      } catch (e) {
+        print('❌ Falha com ${config['description']}: ${e.toString().split('\n')[0]}');
+        continue;
       }
     }
-    return true;
+    
+    print('❌ Todas as tentativas de conexão falharam!');
+    print('🔍 Diagnóstico detalhado:');
+    print('   - Host alcançável: ✅');
+    print('   - Porta 5432 aberta: ✅');
+    print('   - Possíveis causas:');
+    print('     • Senha incorreta');
+    print('     • Usuário não existe');
+    print('     • Banco "development" não existe');
+    print('     • Configuração de autenticação do PostgreSQL');
+    print('     • Problema de firewall/iptables');
+    
+    _isConnected = false;
+    return false;
+  }
+
+  Future<bool> testConnection() async {
+    if (!_isConnected) {
+      print('❌ Não há conexão ativa com o banco');
+      return false;
+    }
+    
+    try {
+      print('🔍 Testando conexão com query simples...');
+      final result = await _connection.execute('SELECT 1 as test;');
+      print('✅ Conexão testada com sucesso: ${result.first[0]}');
+      return true;
+    } catch (e) {
+      print('❌ Erro ao testar conexão: $e');
+      _isConnected = false;
+      return false;
+    }
   }
 
   Future<void> createTables() async {
-    final schema = await File("assets/sql/schema.sql").readAsString();
+    if (!_isConnected) {
+      print('❌ Não é possível criar tabelas - sem conexão');
+      return;
+    }
 
-    final commands = schema.split(";;");
+    try {
+      print('🏗️ Criando tabelas do banco...');
+      final schema = await File("assets/sql/schema.sql").readAsString();
+      final commands = schema.split(";;");
 
-    for (final command in commands) {
-      await _connection.execute(command);
+      for (final command in commands) {
+        if (command.trim().isNotEmpty) {
+          await _connection.execute(command);
+        }
+      }
+      print('✅ Tabelas criadas com sucesso!');
+    } catch (e) {
+      print('❌ Erro ao criar tabelas: $e');
     }
   }
 
   Future<void> mainConnection() async {
-    if (!(await connect())) return;
+    print('🚀 Iniciando conexão principal...');
+    
+    if (!(await connect())) {
+      print('❌ Falha na conexão inicial - aplicação continuará sem banco');
+      return;
+    }
+
+    // Testa a conexão
+    if (!(await testConnection())) {
+      print('❌ Falha no teste de conexão');
+      return;
+    }
+
+    // Verifica se as tabelas existem
     try {
+      print('🔍 Verificando se tabelas existem...');
       await _connection.execute("SELECT * FROM NOTIFICACOES LIMIT 1");
+      print('✅ Tabela NOTIFICACOES encontrada - banco já inicializado');
     } on ServerException catch (e) {
       if (e.code == "42P01") {
-        createTables();
+        print('⚠️  Tabela NOTIFICACOES não encontrada - criando estrutura...');
+        await createTables();
+      } else {
+        print('❌ Erro inesperado ao verificar tabelas: $e');
       }
+    } catch (e) {
+      print('❌ Erro ao verificar tabelas: $e');
     }
   }
 
   Future<void> close() async {
-    await _connection.close();
-    print('Disconnected from PostgreSQL database.');
+    if (_isConnected) {
+      await _connection.close();
+      _isConnected = false;
+      print('✅ Desconectado do banco PostgreSQL');
+    }
   }
 
   Connection get connection => _connection;
+  bool get isConnected => _isConnected;
 }

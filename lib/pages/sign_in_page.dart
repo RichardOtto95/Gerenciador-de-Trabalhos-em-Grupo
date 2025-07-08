@@ -37,8 +37,8 @@ class _SignInState extends State<SignIn> {
   void initState() {
     if (kDebugMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        email = "richard.otto95@gmail.com";
-        senha = "teste";
+        email = "teste@exemplo.com";
+        senha = "senha123";
         await login();
       });
     }
