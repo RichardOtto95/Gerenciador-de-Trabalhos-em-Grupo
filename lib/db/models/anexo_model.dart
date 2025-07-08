@@ -84,7 +84,7 @@ class AnexoRepository {
   /// Retorna todos os anexos de uma tarefa específica.
   Future<List<Anexo>> getAnexosByTarefa(String tarefaId) async {
     final result = await _connection.execute(
-      'SELECT * FROM anexos WHERE tarefa_id = @tarefa_id;',
+      Sql.named('SELECT * FROM anexos WHERE tarefa_id = @tarefa_id;'),
       parameters: {'tarefa_id': tarefaId},
     );
     return result
@@ -107,7 +107,7 @@ class AnexoRepository {
   /// Retorna um anexo pelo seu ID.
   Future<Anexo?> getAnexoById(String id) async {
     final result = await _connection.execute(
-      'SELECT * FROM anexos WHERE id = @id;',
+      Sql.named('SELECT * FROM anexos WHERE id = @id;'),
       parameters: {'id': id},
     );
     if (result.isNotEmpty) {
@@ -137,16 +137,82 @@ class AnexoRepository {
           tipo_mime = @tipo_mime, tamanho_bytes = @tamanho_bytes, caminho_arquivo = @caminho_arquivo
       WHERE id = @id;
     ''';
-    await _connection.execute(query, parameters: anexo.toMap());
+    await _connection.execute(Sql.named(query), parameters: anexo.toMap());
     print('Anexo com ID ${anexo.id} atualizado.');
   }
 
   /// Deleta um anexo pelo seu ID.
   Future<void> deleteAnexo(String id) async {
     await _connection.execute(
-      'DELETE FROM anexos WHERE id = @id;',
+      Sql.named('DELETE FROM anexos WHERE id = @id;'),
       parameters: {'id': id},
     );
     print('Anexo com ID $id deletado.');
+  }
+
+  /// Retorna o total de anexos de uma tarefa.
+  Future<int> getCountAnexosByTarefa(String tarefaId) async {
+    final result = await _connection.execute(
+      Sql.named('SELECT COUNT(*) FROM anexos WHERE tarefa_id = @tarefa_id;'),
+      parameters: {'tarefa_id': tarefaId},
+    );
+    return result.first[0] as int;
+  }
+
+  /// Verifica se um usuário pode remover um anexo (apenas autor ou admin).
+  Future<bool> podeUsuarioRemoverAnexo(String anexoId, String usuarioId) async {
+    final anexo = await getAnexoById(anexoId);
+    if (anexo == null) return false;
+    
+    // Autor pode sempre remover
+    if (anexo.usuarioId == usuarioId) return true;
+    
+    // TODO: Implementar verificação de admin quando tiver controle de papéis
+    // Por enquanto, apenas o autor pode remover
+    return false;
+  }
+
+  /// Retorna o tamanho total dos anexos de uma tarefa em bytes.
+  Future<int> getTamanhoTotalAnexosByTarefa(String tarefaId) async {
+    final result = await _connection.execute(
+      Sql.named('SELECT COALESCE(SUM(tamanho_bytes), 0) FROM anexos WHERE tarefa_id = @tarefa_id;'),
+      parameters: {'tarefa_id': tarefaId},
+    );
+    return result.first[0] as int;
+  }
+
+  /// Retorna anexos de uma tarefa com informações do usuário que fez upload.
+  Future<List<Map<String, dynamic>>> getAnexosComUsuarioByTarefa(String tarefaId) async {
+    final query = '''
+      SELECT 
+        a.id, a.tarefa_id, a.usuario_id, a.nome_original, a.nome_arquivo,
+        a.tipo_mime, a.tamanho_bytes, a.caminho_arquivo, a.data_upload,
+        u.nome as usuario_nome, u.email as usuario_email
+      FROM anexos a 
+      JOIN usuarios u ON a.usuario_id = u.id 
+      WHERE a.tarefa_id = @tarefa_id 
+      ORDER BY a.data_upload DESC;
+    ''';
+    
+    final result = await _connection.execute(
+      Sql.named(query),
+      parameters: {'tarefa_id': tarefaId},
+    );
+    
+    return result.map((row) => {
+      'anexo': Anexo.fromMap({
+        'id': row[0],
+        'tarefa_id': row[1],
+        'usuario_id': row[2],
+        'nome_original': row[3],
+        'nome_arquivo': row[4],
+        'tipo_mime': row[5],
+        'tamanho_bytes': row[6],
+        'caminho_arquivo': row[7],
+        'data_upload': row[8],
+      }),
+      'usuario_nome': row[9],
+      'usuario_email': row[10],
+    }).toList();
   }
 }

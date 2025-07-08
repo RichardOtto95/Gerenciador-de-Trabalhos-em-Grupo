@@ -28,5 +28,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Este app precisa acessar a pasta de documentos para gerenciar anexos de tarefas.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>Este app precisa acessar a pasta de downloads para salvar anexos.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>Este app precisa acessar a área de trabalho para anexar arquivos às tarefas.</string>
 </dict>
 </plist>

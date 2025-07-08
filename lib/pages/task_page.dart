@@ -7,6 +7,7 @@ import 'package:trabalho_bd/db/models/atribuicao_tarefa_model.dart';
 import 'package:trabalho_bd/db/models/comentario_model.dart';
 import 'package:trabalho_bd/shared/widgets/comment_input.dart';
 import 'package:trabalho_bd/shared/widgets/comment_thread_widget.dart';
+import 'package:trabalho_bd/shared/widgets/file_attachment_widget.dart';
 
 class TaskDetailPage extends StatefulWidget {
   const TaskDetailPage({super.key});
@@ -756,16 +757,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
             ),
 
-            // Placeholder para anexos futuros
+            // Sistema de Anexos
             _buildInfoCard(
               title: "Anexos",
               icon: Icons.attach_file,
-              content: Text(
-                "Sistema de anexos será implementado em breve",
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
+              content: FileAttachmentWidget(
+                tarefaId: tarefa.id,
+                currentUser: usuario,
+                onAttachmentChanged: () {
+                  // Opcional: atualizar algo quando anexos mudarem
+                  setState(() {});
+                },
               ),
             ),
           ],

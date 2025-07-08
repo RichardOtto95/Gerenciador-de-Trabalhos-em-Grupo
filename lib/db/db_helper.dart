@@ -29,7 +29,7 @@ class DatabaseHelper {
           port: 5432,
           database: 'development',
           username: 'postgres',
-          password: 'masterkey',
+          password: 'postgres',
         ),
         settings: ConnectionSettings(sslMode: SslMode.disable),
         // settings: ConnectionSettings(sslMode: config['sslMode']),

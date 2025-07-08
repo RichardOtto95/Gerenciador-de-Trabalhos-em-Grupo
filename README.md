@@ -4,8 +4,10 @@
 
 **Módulo de Grupos: 4/4 user stories principais implementadas** 
 **Módulo de Tarefas: 7/7 user stories implementadas**
+**Módulo de Comentários: 3/3 user stories implementadas (US019-US021)**
 **Módulo de Rótulos: 3/3 user stories implementadas (US016-US018)**
-**Total: 14 user stories concluídas**
+**Módulo de Anexos: 3/3 user stories implementadas (US022-US024)**
+**Total: 20 user stories concluídas**
 
 ### ✅ US005 - Criar Grupo
 **Como** usuário logado  
@@ -198,6 +200,45 @@
   - ✅ Interface de seleção com visualização das cores
   - ✅ Contador de tarefas filtradas
 
+---
+
+### ✅ US022-US024 - Sistema de Anexos
+**Como** membro de grupo  
+**Eu quero** anexar, baixar e gerenciar arquivos nas tarefas  
+**Para que** eu possa compartilhar documentos relevantes ao trabalho  
+
+**Critérios de Aceitação Implementados:**
+- ✅ **US022 - Anexar Arquivo à Tarefa**
+  - ✅ Upload de múltiplos arquivos simultaneamente
+  - ✅ Validação de tipo e tamanho (máx. 50MB)
+  - ✅ Suporte a 25+ tipos de arquivo (documentos, imagens, vídeos, áudio, compactados)
+  - ✅ Armazenamento seguro com nomes únicos
+  - ✅ Detecção automática de tipo MIME
+  - ✅ Interface intuitiva com feedback de progresso
+
+- ✅ **US023 - Download de Anexo**
+  - ✅ Download direto e seguro para pasta de downloads
+  - ✅ Preservação do nome original do arquivo
+  - ✅ Verificação de integridade do arquivo
+  - ✅ Botão para abrir pasta de destino
+  - ✅ Feedback visual durante download
+
+- ✅ **US024 - Remover Anexo**
+  - ✅ Remoção apenas pelo autor do anexo
+  - ✅ Confirmação obrigatória antes da remoção
+  - ✅ Limpeza do arquivo físico do sistema
+  - ✅ Log da ação de remoção
+  - ✅ Interface com permissões baseadas no usuário
+
+**Funcionalidades Técnicas:**
+- Widget reutilizável `FileAttachmentWidget`
+- Ícones específicos por tipo de arquivo
+- Formatação automática de tamanhos de arquivo
+- Integração com `file_picker`, `path_provider` e `mime`
+- Sistema de permissões robusto
+- Tratamento de erros completo
+- Interface responsiva e acessível
+
 **Funcionalidades Implementadas:**
 - Página dedicada de gerenciamento de rótulos (`LabelManagementPage`)
 - Dialog para aplicação de rótulos às tarefas (`TaskLabelsDialog`)
@@ -239,11 +280,15 @@
 - **US004**: Perfil do usuário editável
 - Substituir sistema mock atual por autenticação real
 
-#### **2. US022-US024 - Sistema de Anexos** 📎
-- **US022**: Anexar arquivos às tarefas
-- **US023**: Download seguro de anexos
-- **US024**: Gerenciar anexos (remover, visualizar)
-- Funcionalidade importante para colaboração
+#### **2. US025-US026 - Sistema de Notificações** 🔔
+- **US025**: Receber notificações de atividades relevantes
+- **US026**: Configurar preferências de notificação
+- Sistema em tempo real para engajamento
+
+#### **3. US027-US028 - Dashboard e Relatórios** 📊
+- **US027**: Dashboard principal com resumo das atividades
+- **US028**: Relatórios de produtividade da equipe
+- Analytics e métricas para gestão
 
 ---
 
