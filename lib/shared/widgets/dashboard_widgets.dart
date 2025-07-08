@@ -507,7 +507,7 @@ class GroupStatsCard extends StatelessWidget {
                       Text(
                         '${stats.totalGrupos} grupos',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Theme.of(context).primaryColor,
+                          color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -516,7 +516,7 @@ class GroupStatsCard extends StatelessWidget {
                   Icon(
                     Icons.group,
                     size: 40,
-                    color: Theme.of(context).primaryColor.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
                   ),
                 ],
               ),

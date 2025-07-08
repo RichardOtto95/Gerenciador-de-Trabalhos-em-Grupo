@@ -58,8 +58,8 @@ class _DashboardPageState extends State<DashboardPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Dashboard'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
         actions: [
           IconButton(
@@ -94,6 +94,8 @@ class _DashboardPageState extends State<DashboardPage> {
             arguments: widget.usuario,
           );
         },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         child: Icon(Icons.add),
         tooltip: 'Criar Grupo',
       ),
@@ -283,8 +285,8 @@ class _DashboardPageState extends State<DashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).primaryColor,
-            Theme.of(context).primaryColor.withOpacity(0.8),
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
           ],
         ),
       ),
@@ -296,14 +298,14 @@ class _DashboardPageState extends State<DashboardPage> {
             Text(
               '$greeting,',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontWeight: FontWeight.w300,
               ),
             ),
             Text(
               widget.usuario.nome,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -312,7 +314,7 @@ class _DashboardPageState extends State<DashboardPage> {
               Text(
                 _buildSummaryText(),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.9),
                 ),
               ),
             ],

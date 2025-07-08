@@ -14,7 +14,7 @@ import 'package:trabalho_bd/pages/group_list_page.dart';
 import 'package:trabalho_bd/pages/group_members_page.dart';
 import 'package:trabalho_bd/pages/group_settings_page.dart';
 import 'package:trabalho_bd/pages/home_page.dart';
-import 'package:trabalho_bd/pages/dashboard_page.dart';
+import 'package:trabalho_bd/pages/main_layout.dart';
 import 'package:trabalho_bd/pages/label_management_page.dart';
 import 'package:trabalho_bd/pages/profile_page.dart';
 import 'package:trabalho_bd/pages/sign_in_page.dart';
@@ -36,12 +36,28 @@ final darkScheme = ColorScheme.fromSeed(
   brightness: Brightness.dark,
 );
 
-final theme = ThemeData(colorScheme: lightScheme);
+final theme = ThemeData(
+  colorScheme: lightScheme,
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    backgroundColor: lightScheme.surface,
+    selectedItemColor: lightScheme.primary,
+    unselectedItemColor: lightScheme.onSurface.withOpacity(0.6),
+    selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+    type: BottomNavigationBarType.fixed,
+  ),
+);
 
 final darkTheme = ThemeData(
   colorScheme: darkScheme,
   brightness: Brightness.dark,
   listTileTheme: ListTileThemeData(),
+  bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    backgroundColor: darkScheme.surface,
+    selectedItemColor: darkScheme.primary,
+    unselectedItemColor: darkScheme.onSurface.withOpacity(0.6),
+    selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
+    type: BottomNavigationBarType.fixed,
+  ),
 );
 
 class MyApp extends StatelessWidget {
@@ -75,7 +91,7 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               settings: settings,
               builder: (context) {
-                return DashboardPage(usuario: settings.arguments as Usuario);
+                return MainLayout(usuario: settings.arguments as Usuario);
               },
             );
           case "/signin":
