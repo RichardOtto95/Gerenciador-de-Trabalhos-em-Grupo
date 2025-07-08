@@ -1,7 +1,9 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:window_manager/window_manager.dart';
 import 'package:trabalho_bd/db/db_helper.dart';
 import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
@@ -25,6 +27,28 @@ import 'package:trabalho_bd/pages/task_edit_page.dart';
 import 'package:trabalho_bd/pages/notification_preferences_page.dart';
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Configurar janela para desktop
+  await windowManager.ensureInitialized();
+  
+  WindowOptions windowOptions = WindowOptions(
+    size: Size(500, 800), // Tamanho fixo da janela
+    minimumSize: Size(500, 800), // Tamanho mínimo (igual ao fixo)
+    maximumSize: Size(500, 800), // Tamanho máximo (igual ao fixo)
+    center: true, // Centralizar na tela
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden, // Ocultar barra de título (borderless)
+    alwaysOnTop: false,
+    fullScreen: false,
+  );
+  
+  await windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+  
   await DatabaseHelper().mainConnection();
 
   runApp(const MyApp());
@@ -39,6 +63,15 @@ final darkScheme = ColorScheme.fromSeed(
 
 final theme = ThemeData(
   colorScheme: lightScheme,
+  appBarTheme: AppBarTheme(
+    backgroundColor: lightScheme.surface,
+    foregroundColor: lightScheme.onSurface,
+    elevation: 0,
+    centerTitle: false,
+    titleSpacing: 16,
+    toolbarHeight: 56, // Altura normal da AppBar
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
+  ),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: lightScheme.surface,
     selectedItemColor: lightScheme.primary,
@@ -51,6 +84,15 @@ final theme = ThemeData(
 final darkTheme = ThemeData(
   colorScheme: darkScheme,
   brightness: Brightness.dark,
+  appBarTheme: AppBarTheme(
+    backgroundColor: darkScheme.surface,
+    foregroundColor: darkScheme.onSurface,
+    elevation: 0,
+    centerTitle: false,
+    titleSpacing: 16,
+    toolbarHeight: 56, // Altura normal da AppBar
+    systemOverlayStyle: SystemUiOverlayStyle.light,
+  ),
   listTileTheme: ListTileThemeData(),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: darkScheme.surface,
@@ -67,7 +109,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Class Work',
+      title: 'UNBGrupos',
       debugShowCheckedModeBanner: false,
       theme: theme,
       darkTheme: darkTheme,
@@ -113,7 +155,9 @@ class MyApp extends StatelessWidget {
           case "/profile":
             return MaterialPageRoute(
               settings: settings,
-              builder: (context) => Profile(),
+              builder: (context) {
+                return Profile(usuario: settings.arguments as Usuario);
+              },
             );
           case "/group-create":
             return MaterialPageRoute(

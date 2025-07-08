@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 
 class NotificationPage extends StatefulWidget {
   final Usuario usuario;
-  
+
   const NotificationPage({Key? key, required this.usuario}) : super(key: key);
 
   @override
@@ -18,6 +18,7 @@ class NotificationPage extends StatefulWidget {
 class _NotificationPageState extends State<NotificationPage> {
   final NotificationService _notificationService = NotificationService();
   final NotificationDemo _notificationDemo = NotificationDemo();
+  
   List<Notificacao> _notificacoes = [];
   bool _isLoading = true;
   bool _showOnlyUnread = false;
@@ -30,17 +31,14 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _carregarNotificacoes() async {
-    try {
-      setState(() {
-        _isLoading = true;
-      });
+    setState(() {
+      _isLoading = true;
+    });
 
-      List<Notificacao> notificacoes;
-      if (_showOnlyUnread) {
-        notificacoes = await _notificationService.buscarNotificacesNaoLidas(widget.usuario.id);
-      } else {
-        notificacoes = await _notificationService.buscarTodasNotificacoes(widget.usuario.id);
-      }
+    try {
+      final notificacoes = _showOnlyUnread
+          ? await _notificationService.buscarNotificacesNaoLidas(widget.usuario.id)
+          : await _notificationService.buscarTodasNotificacoes(widget.usuario.id);
 
       final unreadCount = await _notificationService.contarNotificacesNaoLidas(widget.usuario.id);
 
@@ -59,34 +57,27 @@ class _NotificationPageState extends State<NotificationPage> {
     }
   }
 
-  Future<void> _marcarComoLida(Notificacao notificacao) async {
-    if (notificacao.lida) return;
-
+  Future<void> _marcarComoLida(String notificacaoId) async {
     try {
-      await _notificationService.marcarComoLida(notificacao.id);
-      await _carregarNotificacoes();
-      
-      if (mounted) {
-        mostrarSnackBar(context, 'Notificação marcada como lida');
-      }
+      await _notificationService.marcarComoLida(notificacaoId);
+      await _carregarNotificacoes(); // Recarregar para atualizar contadores
     } catch (e) {
       if (mounted) {
-        mostrarSnackBar(context, 'Erro ao marcar notificação como lida: $e');
+        mostrarSnackBar(context, 'Erro ao marcar como lida: $e');
       }
     }
   }
 
   Future<void> _marcarTodasComoLidas() async {
     try {
-      final naoLidas = _notificacoes.where((n) => !n.lida).toList();
-      if (naoLidas.isEmpty) return;
-
-      final ids = naoLidas.map((n) => n.id).toList();
-      await _notificationService.marcarVariasComoLidas(ids);
-      await _carregarNotificacoes();
+      final notificacoesNaoLidas = _notificacoes
+          .where((n) => !n.lida)
+          .map((n) => n.id)
+          .toList();
       
-      if (mounted) {
-        mostrarSnackBar(context, '${naoLidas.length} notificações marcadas como lidas');
+      if (notificacoesNaoLidas.isNotEmpty) {
+        await _notificationService.marcarVariasComoLidas(notificacoesNaoLidas);
+        await _carregarNotificacoes();
       }
     } catch (e) {
       if (mounted) {
@@ -99,7 +90,6 @@ class _NotificationPageState extends State<NotificationPage> {
     try {
       await _notificationDemo.criarNotificacoesDemostracao(widget.usuario);
       await _carregarNotificacoes();
-      
       if (mounted) {
         mostrarSnackBar(context, 'Notificações de teste criadas com sucesso!');
       }
@@ -191,11 +181,8 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text('Notificações'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
         actions: [
           if (_unreadCount > 0)
             TextButton(
@@ -429,7 +416,7 @@ class _NotificationPageState extends State<NotificationPage> {
           onSelected: (value) {
             switch (value) {
               case 'read':
-                _marcarComoLida(notificacao);
+                _marcarComoLida(notificacao.id);
                 break;
               case 'navigate':
                 _navegarParaEntidade(notificacao);
@@ -463,7 +450,7 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
         onTap: () {
           if (isUnread) {
-            _marcarComoLida(notificacao);
+            _marcarComoLida(notificacao.id);
           }
           _navegarParaEntidade(notificacao);
         },

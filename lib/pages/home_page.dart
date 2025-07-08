@@ -4,6 +4,7 @@ import 'package:trabalho_bd/db/models/notificacao_model.dart';
 import 'package:trabalho_bd/db/models/usuario_grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/pages/dashboard_page.dart';
+import 'package:trabalho_bd/shared/functions.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.usuario});
@@ -40,7 +41,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: Text(widget.usuario.nome),
         actions: [
           Badge(
@@ -51,7 +52,10 @@ class _HomeState extends State<Home> {
                 : Text(notificacoes.length.toString()),
             child: IconButton(
               onPressed: () {
-                Navigator.of(context).pushNamed("/profile");
+                Navigator.of(context).pushNamed(
+                  "/profile",
+                  arguments: widget.usuario,
+                );
               },
               icon: Icon(Icons.person),
             ),

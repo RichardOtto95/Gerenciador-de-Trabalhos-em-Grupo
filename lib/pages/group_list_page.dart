@@ -137,11 +137,8 @@ class _GroupListPageState extends State<GroupListPage> {
     final theme = Theme.of(context);
     
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: const Text('Meus Grupos'),
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.onSurface,
-        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

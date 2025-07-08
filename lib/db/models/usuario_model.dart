@@ -182,8 +182,20 @@ class UsuarioRepository {
           bio = @bio, ativo = @ativo, data_atualizacao = CURRENT_TIMESTAMP, ultimo_login = @ultimo_login
       WHERE id = @id;
     ''';
-    // Note: data_atualizacao é atualizada pelo trigger no banco, mas incluímos para consistência no toMap.
-    await _connection.execute(Sql.named(query), parameters: usuario.toMap());
+    
+    // Preparar apenas os parâmetros necessários para o update
+    final params = {
+      'id': usuario.id,
+      'nome': usuario.nome,
+      'email': usuario.email,
+      'senha_hash': usuario.senhaHash,
+      'foto_perfil': usuario.fotoPerfil,
+      'bio': usuario.bio,
+      'ativo': usuario.ativo,
+      'ultimo_login': usuario.ultimoLogin,
+    };
+    
+    await _connection.execute(Sql.named(query), parameters: params);
     print('Usuário "${usuario.nome}" atualizado.');
   }
 

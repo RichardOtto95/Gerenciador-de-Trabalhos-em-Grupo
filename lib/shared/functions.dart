@@ -15,6 +15,55 @@ double perWidth(BuildContext context, double percent) =>
 double perHeight(BuildContext context, double percent) =>
     height(context) * percent / 100;
 
+/// AppBar customizada com padding no topo para evitar sobreposição com botões do sistema
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final Widget? title;
+  final List<Widget>? actions;
+  final Widget? leading;
+  final bool automaticallyImplyLeading;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final double elevation;
+  final double topPadding;
+
+  const CustomAppBar({
+    super.key,
+    this.title,
+    this.actions,
+    this.leading,
+    this.automaticallyImplyLeading = true,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.elevation = 0,
+    this.topPadding = 24, // Padding padrão no topo
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Container(
+      color: backgroundColor ?? theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+      child: Padding(
+        padding: EdgeInsets.only(top: topPadding),
+        child: AppBar(
+          title: title,
+          actions: actions,
+          leading: leading,
+          automaticallyImplyLeading: automaticallyImplyLeading,
+          backgroundColor: Colors.transparent,
+          foregroundColor: foregroundColor ?? theme.appBarTheme.foregroundColor,
+          elevation: elevation,
+          scrolledUnderElevation: 0,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight + topPadding);
+}
+
 Future<void> executeWithLoad(
   BuildContext context,
   Future<void> Function() futureCallback,

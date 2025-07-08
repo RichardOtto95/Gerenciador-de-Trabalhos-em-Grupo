@@ -7,6 +7,7 @@ import 'package:trabalho_bd/db/models/atribuicao_tarefa_model.dart';
 import 'package:trabalho_bd/db/models/tarefa_rotulo.dart';
 import 'package:trabalho_bd/db/models/rotulo_model.dart';
 import 'package:trabalho_bd/shared/widgets/task_labels_dialog.dart';
+import 'package:trabalho_bd/shared/functions.dart';
 
 class GroupPage extends StatefulWidget {
   const GroupPage({super.key, required this.grupo, required this.usuario});
@@ -574,7 +575,7 @@ class _GroupPageState extends State<GroupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CustomAppBar(
         title: TextButton(
           child: Text(widget.grupo.nome, style: TextStyle(fontSize: 18)),
           onPressed: () => Navigator.pushNamed(
@@ -632,9 +633,9 @@ class _GroupPageState extends State<GroupPage> {
                 value: 'members',
                 child: Row(
                   children: [
-                    Icon(Icons.people),
+                    Icon(Icons.group),
                     SizedBox(width: 8),
-                    Text('Gerenciar membros'),
+                    Text('Membros'),
                   ],
                 ),
               ),
@@ -644,7 +645,7 @@ class _GroupPageState extends State<GroupPage> {
                   children: [
                     Icon(Icons.label),
                     SizedBox(width: 8),
-                    Text('Gerenciar rótulos'),
+                    Text('Rótulos'),
                   ],
                 ),
               ),

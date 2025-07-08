@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trabalho_bd/db/models/dashboard_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/shared/widgets/dashboard_widgets.dart';
+import 'package:trabalho_bd/shared/functions.dart';
 
 class DashboardPage extends StatefulWidget {
   final Usuario usuario;
@@ -56,11 +57,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Dashboard'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: Text('UNBGrupos', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             onPressed: () {
@@ -75,7 +73,11 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           IconButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(
+                context, 
+                '/profile',
+                arguments: widget.usuario,
+              );
             },
             icon: Icon(Icons.person),
             tooltip: 'Perfil',

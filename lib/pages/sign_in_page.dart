@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:trabalho_bd/db/models/usuario_model.dart';
-import 'package:trabalho_bd/shared/constants.dart';
+import 'package:trabalho_bd/services/auth_service.dart';
 import 'package:trabalho_bd/shared/functions.dart';
 import 'package:trabalho_bd/shared/widgets/button.dart';
 
@@ -13,100 +11,135 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final formKey = GlobalKey<FormState>();
-  String email = "";
-  String senha = "";
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
 
-  Future<void> login() async {
-    final repo = UsuarioRepository();
-    final usuario = await repo.getUsuarioByEmail(email);
-    if (usuario == null) {
-      if (!mounted) return;
-      mostrarSnackBar(context, "E-mail não cadastrado!");
-    } else {
-      if (!mounted) return;
-      if (senha == usuario.senhaHash) {
-        Navigator.of(context).pushNamed("/home", arguments: usuario);
-      } else {
-        mostrarSnackBar(context, "E-mail ou senha incorreto.");
-      }
-    }
-  }
+  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
-  void initState() {
-    if (kDebugMode) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        email = "teste@exemplo.com";
-        senha = "senha123";
-        await login();
-      });
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
-    super.initState();
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final resultado = await AuthService.loginUser(
+      email: _emailController.text.trim(),
+      senha: _senhaController.text,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (!mounted) return;
+
+    if (resultado['success']) {
+      // Navegar para a tela principal
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        "/home",
+        (route) => false,
+        arguments: resultado['usuario'],
+      );
+    } else {
+      mostrarSnackBar(context, resultado['message']);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Form(
-        key: formKey,
+        key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Spacer(),
+            const Spacer(),
             Text(
-              "Class Work",
-              style: Theme.of(context).textTheme.displayMedium,
+              "UNBGrupos",
+              style: Theme.of(context).textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
-            Spacer(),
+            const SizedBox(height: 10),
             Container(
               width: MediaQuery.of(context).size.width,
               alignment: Alignment.center,
               child: Text(
-                "Sua ferramenta favorita para facilitar os trabalhos em grupo",
+                "Sua ferramenta favorita para\n facilitar os trabalhos em grupo.",
+                style: TextStyle(fontSize: 14),
+                textAlign: TextAlign.center,
               ),
             ),
-            Spacer(),
+            const Spacer(),
+
+            // Campo Email
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: TextFormField(
-                decoration: InputDecoration(
-                  label: Text("E-mail"),
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: "E-mail",
+                  hintText: "Digite seu e-mail",
                   border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
                 ),
-                onChanged: (value) => email = value,
+                keyboardType: TextInputType.emailAddress,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Este campo não pode ser vazio.";
+                  if (value == null || value.trim().isEmpty) {
+                    return "E-mail é obrigatório";
                   }
-                  if (!emailRegExp.hasMatch(value)) {
-                    return 'Por favor, digite um e-mail válido.';
-                  }
-                  return null;
+                  return AuthService.validateEmail(value);
                 },
+                textInputAction: TextInputAction.next,
               ),
             ),
 
-            SizedBox(height: 30),
+            const SizedBox(height: 20),
+
+            // Campo Senha
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30),
+              padding: const EdgeInsets.symmetric(horizontal: 30),
               child: TextFormField(
+                controller: _senhaController,
                 decoration: InputDecoration(
-                  label: Text("Senha"),
-                  border: OutlineInputBorder(),
+                  labelText: "Senha",
+                  hintText: "Digite sua senha",
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
-                onChanged: (value) => senha = value,
+                obscureText: _obscurePassword,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Este campo não pode ser vazio.";
+                    return "Senha é obrigatória";
                   }
                   return null;
                 },
-                onFieldSubmitted: (value) => login(),
+                textInputAction: TextInputAction.done,
+                onFieldSubmitted: (_) => _login(),
               ),
             ),
-            SizedBox(height: 10),
+
+            const SizedBox(height: 10),
+
+            // Botões de navegação
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: Row(
@@ -115,18 +148,27 @@ class _SignInState extends State<SignIn> {
                   TextButton(
                     onPressed: () =>
                         Navigator.of(context).pushNamed("/forget-password"),
-                    child: Text("Esqueci a senha"),
+                    child: const Text("Esqueci a senha"),
                   ),
                   FilledButton(
                     onPressed: () => Navigator.of(context).pushNamed("/signup"),
-                    child: Text("Cadastrar"),
+                    child: const Text("Cadastrar"),
                   ),
                 ],
               ),
             ),
-            Spacer(),
-            Button(label: "Entrar", onTap: login),
-            Spacer(),
+
+            const Spacer(),
+
+            // Botão de login
+            _isLoading
+                ? const CircularProgressIndicator()
+                : Button(
+                    label: "Entrar",
+                    onTap: _login,
+                  ),
+
+            const Spacer(),
           ],
         ),
       ),

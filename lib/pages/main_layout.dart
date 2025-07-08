@@ -31,7 +31,7 @@ class _MainLayoutState extends State<MainLayout> {
       GroupListPage(usuario: widget.usuario),
       TasksListPage(usuario: widget.usuario),
       NotificationPage(usuario: widget.usuario),
-      const Profile(),
+      Profile(usuario: widget.usuario),
     ];
   }
 
@@ -137,12 +137,7 @@ class _TasksListPageState extends State<TasksListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Minhas Tarefas'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-      ),
+      appBar: CustomAppBar(title: Text('Minhas Tarefas')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _tarefas.isEmpty
