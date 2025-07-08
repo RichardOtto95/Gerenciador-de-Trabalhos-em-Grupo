@@ -14,6 +14,7 @@ import 'package:trabalho_bd/pages/group_list_page.dart';
 import 'package:trabalho_bd/pages/group_members_page.dart';
 import 'package:trabalho_bd/pages/group_settings_page.dart';
 import 'package:trabalho_bd/pages/home_page.dart';
+import 'package:trabalho_bd/pages/dashboard_page.dart';
 import 'package:trabalho_bd/pages/label_management_page.dart';
 import 'package:trabalho_bd/pages/profile_page.dart';
 import 'package:trabalho_bd/pages/sign_in_page.dart';
@@ -70,14 +71,13 @@ class MyApp extends StatelessWidget {
               settings: settings,
               builder: (context) => SignIn(),
             );
-          // case "/home":
-          //   return MaterialPageRoute(
-          //     settings: settings,
-
-          //     builder: (context) {
-          //       return Home(usuario: settings.arguments as Usuario);
-          //     },
-          //   );
+          case "/home":
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                return DashboardPage(usuario: settings.arguments as Usuario);
+              },
+            );
           case "/signin":
             return MaterialPageRoute(
               settings: settings,

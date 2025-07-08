@@ -3,6 +3,7 @@ import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/db/models/notificacao_model.dart';
 import 'package:trabalho_bd/db/models/usuario_grupo_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
+import 'package:trabalho_bd/pages/dashboard_page.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key, required this.usuario});
@@ -184,25 +185,11 @@ class _HomeState extends State<Home> {
               },
             ),
 
-            SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.only(left: 15),
-              child: Text(
-                "Tarefas",
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ),
-            SizedBox(height: 15),
-            Center(
-              child: Column(
-                children: [
-                  SizedBox(height: 15),
-                  Icon(Icons.task),
-                  SizedBox(height: 15),
-                  Text("Sem tarefas no momento"),
-                  SizedBox(height: 15),
-                ],
-              ),
+            SizedBox(height: 20),
+            // Dashboard integrado
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7, // 70% da altura da tela
+              child: DashboardPage(usuario: widget.usuario),
             ),
           ],
         ),
