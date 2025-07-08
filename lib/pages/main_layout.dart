@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:trabalho_bd/pages/dashboard_page.dart';
 import 'package:trabalho_bd/pages/group_list_page.dart';
 import 'package:trabalho_bd/pages/profile_page.dart';
+import 'package:trabalho_bd/pages/notification_page.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/db/models/tarefa_model.dart';
 import 'package:trabalho_bd/shared/functions.dart';
@@ -29,7 +30,7 @@ class _MainLayoutState extends State<MainLayout> {
       DashboardPage(usuario: widget.usuario),
       GroupListPage(usuario: widget.usuario),
       TasksListPage(usuario: widget.usuario),
-      const NotificationsPage(),
+      NotificationPage(usuario: widget.usuario),
       const Profile(),
     ];
   }
@@ -89,52 +90,7 @@ class _MainLayoutState extends State<MainLayout> {
   }
 }
 
-// Página temporária para notificações
-class NotificationsPage extends StatelessWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notificações'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.notifications_outlined,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Notificações',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Em breve você receberá notificações\nsobre suas tarefas e grupos.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // Página temporária para tarefas
 class TasksListPage extends StatefulWidget {

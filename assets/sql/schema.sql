@@ -245,6 +245,24 @@ notificação';;
 COMMENT ON COLUMN notificacoes.entidade_id IS 'ID da entidade relacionada à
 notificação';;
 -- ========================================
+-- 13. TABELA DE PREFERÊNCIAS DE NOTIFICAÇÃO
+-- ========================================
+CREATE TABLE preferencias_notificacao (
+id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+usuario_id UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+grupo_id UUID REFERENCES grupos(id) ON DELETE CASCADE,
+tipo_notificacao VARCHAR(50) NOT NULL,
+ativo BOOLEAN DEFAULT TRUE,
+data_criacao TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+data_atualizacao TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+UNIQUE(usuario_id, grupo_id, tipo_notificacao),
+CONSTRAINT preferencias_tipo_check CHECK (tipo_notificacao IN ('tarefa_atribuida',
+'tarefa_vencendo', 'comentario_adicionado', 'tarefa_completada', 'convite_grupo'))
+);;
+COMMENT ON TABLE preferencias_notificacao IS 'Configurações de notificação por usuário e grupo';;
+COMMENT ON COLUMN preferencias_notificacao.grupo_id IS 'Grupo específico (NULL = configuração global)';;
+COMMENT ON COLUMN preferencias_notificacao.tipo_notificacao IS 'Tipo de notificação para controlar';;
+-- ========================================
 -- ÍNDICES PARA PERFORMANCE
 -- ========================================
 -- Índices para consultas frequentes
@@ -264,6 +282,8 @@ CREATE INDEX idx_atividades_usuario_id ON atividades(usuario_id);;
 CREATE INDEX idx_atividades_data ON atividades(data_acao);;
 CREATE INDEX idx_notificacoes_usuario_id ON notificacoes(usuario_id);;
 CREATE INDEX idx_notificacoes_lida ON notificacoes(lida);;
+CREATE INDEX idx_preferencias_notificacao_usuario_id ON preferencias_notificacao(usuario_id);;
+CREATE INDEX idx_preferencias_notificacao_grupo_id ON preferencias_notificacao(grupo_id);;
 -- Índice composto para busca de tarefas por grupo e status
 CREATE INDEX idx_tarefas_grupo_status ON tarefas(grupo_id, status_id);;
 -- ========================================
@@ -292,5 +312,9 @@ FOR EACH ROW
 EXECUTE FUNCTION atualizar_timestamp();;
 CREATE TRIGGER trigger_comentarios_updated_at
 BEFORE UPDATE ON comentarios
+FOR EACH ROW
+EXECUTE FUNCTION atualizar_timestamp();;
+CREATE TRIGGER trigger_preferencias_notificacao_updated_at
+BEFORE UPDATE ON preferencias_notificacao
 FOR EACH ROW
 EXECUTE FUNCTION atualizar_timestamp();;

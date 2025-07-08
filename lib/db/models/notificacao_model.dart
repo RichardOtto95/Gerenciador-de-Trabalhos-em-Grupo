@@ -78,10 +78,24 @@ class NotificacaoRepository {
   /// Cria uma nova notificação no banco de dados.
   Future<void> createNotificacao(Notificacao notificacao) async {
     final query = '''
-      INSERT INTO notificacoes (id, usuario_id, tipo, titulo, mensagem, entidade_tipo, entidade_id, lida, data_criacao, data_leitura)
-      VALUES (@id, @usuario_id, @tipo, @titulo, @mensagem, @entidade_tipo, @entidade_id, @lida, @data_criacao, @data_leitura);
+      INSERT INTO notificacoes (id, usuario_id, tipo, titulo, mensagem, entidade_tipo, entidade_id, lida, data_leitura)
+      VALUES (@id, @usuario_id, @tipo, @titulo, @mensagem, @entidade_tipo, @entidade_id, @lida, @data_leitura);
     ''';
-    await _connection.execute(Sql.named(query), parameters: notificacao.toMap());
+    
+    // Preparar parâmetros sem data_criacao (usa padrão do banco)
+    final params = {
+      'id': notificacao.id,
+      'usuario_id': notificacao.usuarioId,
+      'tipo': notificacao.tipo,
+      'titulo': notificacao.titulo,
+      'mensagem': notificacao.mensagem,
+      'entidade_tipo': notificacao.entidadeTipo,
+      'entidade_id': notificacao.entidadeId,
+      'lida': notificacao.lida,
+      'data_leitura': notificacao.dataLeitura,
+    };
+    
+    await _connection.execute(Sql.named(query), parameters: params);
     print('Notificação criada para o usuário ${notificacao.usuarioId}.');
   }
 
@@ -153,7 +167,21 @@ class NotificacaoRepository {
           data_leitura = @data_leitura
       WHERE id = @id;
     ''';
-    await _connection.execute(Sql.named(query), parameters: notificacao.toMap());
+    
+    // Preparar parâmetros sem data_criacao (não deve ser alterada)
+    final params = {
+      'id': notificacao.id,
+      'usuario_id': notificacao.usuarioId,
+      'tipo': notificacao.tipo,
+      'titulo': notificacao.titulo,
+      'mensagem': notificacao.mensagem,
+      'entidade_tipo': notificacao.entidadeTipo,
+      'entidade_id': notificacao.entidadeId,
+      'lida': notificacao.lida,
+      'data_leitura': notificacao.dataLeitura,
+    };
+    
+    await _connection.execute(Sql.named(query), parameters: params);
     print('Notificação com ID ${notificacao.id} atualizada.');
   }
 

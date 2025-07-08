@@ -22,6 +22,7 @@ import 'package:trabalho_bd/pages/sign_up_page.dart';
 import 'package:trabalho_bd/pages/task_page.dart';
 import 'package:trabalho_bd/pages/task_create_page.dart';
 import 'package:trabalho_bd/pages/task_edit_page.dart';
+import 'package:trabalho_bd/pages/notification_preferences_page.dart';
 
 void main() async {
   await DatabaseHelper().mainConnection();
@@ -204,6 +205,15 @@ class MyApp extends StatelessWidget {
                   tarefa: args['tarefa'] as Tarefa,
                   grupo: args['grupo'] as Grupo,
                   usuario: args['usuario'] as Usuario,
+                );
+              },
+            );
+          case "/notification-preferences":
+            return MaterialPageRoute(
+              settings: settings,
+              builder: (context) {
+                return NotificationPreferencesPage(
+                  usuario: settings.arguments as Usuario,
                 );
               },
             );
