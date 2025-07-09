@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:trabalho_bd/db/models/dashboard_model.dart';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
+import 'package:trabalho_bd/db/models/tarefa_model.dart';
+import 'package:trabalho_bd/db/models/grupo_model.dart';
 import 'package:trabalho_bd/shared/widgets/dashboard_widgets.dart';
 import 'package:trabalho_bd/shared/functions.dart';
 
@@ -346,14 +348,49 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  void _navigateToTask(TaskSummary task) {
-    // TODO: Implementar navegação para detalhes da tarefa
-    // Por enquanto, apenas mostra um snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navegando para tarefa: ${task.titulo}'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  void _navigateToTask(TaskSummary task) async {
+    try {
+      // Verificar se os IDs não estão vazios
+      if (task.id.isEmpty || task.grupoId.isEmpty) {
+        throw Exception('IDs da tarefa ou grupo estão vazios');
+      }
+
+      // Buscar tarefa completa e grupo
+      final tarefaRepo = TarefaRepository();
+      final grupoRepo = GrupoRepository();
+      
+      final tarefa = await tarefaRepo.getTarefaById(task.id);
+      final grupo = await grupoRepo.getGrupoById(task.grupoId);
+      
+      if (tarefa != null && grupo != null) {
+        Navigator.pushNamed(
+          context,
+          '/task',
+          arguments: {
+            'tarefa': tarefa,
+            'grupo': grupo,
+            'usuario': widget.usuario,
+          },
+        ).then((_) {
+          // Recarregar dashboard após voltar dos detalhes
+          _loadDashboardData();
+        });
+      } else {
+        String erro = '';
+        if (tarefa == null) erro += 'Tarefa não encontrada. ';
+        if (grupo == null) erro += 'Grupo não encontrado. ';
+        throw Exception(erro);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao navegar para tarefa: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    }
   }
 } 

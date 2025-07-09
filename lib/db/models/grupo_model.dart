@@ -31,15 +31,15 @@ class Grupo {
   /// Converte uma linha do banco de dados (Map) em um objeto Grupo.
   factory Grupo.fromMap(Map<String, dynamic> map) {
     return Grupo(
-      id: map['id'],
-      nome: map['nome'],
-      descricao: map['descricao'],
-      corTema: map['cor_tema'],
-      criadorId: map['criador_id'],
-      publico: map['publico'],
-      maxMembros: map['max_membros'],
-      dataCriacao: (map['data_criacao'] as DateTime),
-      dataAtualizacao: (map['data_atualizacao'] as DateTime),
+      id: map['id']?.toString() ?? '',
+      nome: map['nome']?.toString() ?? '',
+      descricao: map['descricao']?.toString(),
+      corTema: map['cor_tema']?.toString() ?? '#007bff',
+      criadorId: map['criador_id']?.toString() ?? '',
+      publico: map['publico'] ?? false,
+      maxMembros: map['max_membros'] ?? 50,
+      dataCriacao: (map['data_criacao'] as DateTime?) ?? DateTime.now(),
+      dataAtualizacao: (map['data_atualizacao'] as DateTime?) ?? DateTime.now(),
     );
   }
 
@@ -145,6 +145,7 @@ class GrupoRepository {
       Sql.named('SELECT * FROM grupos WHERE id = @id;'),
       parameters: {'id': id},
     );
+    
     if (result.isNotEmpty) {
       final row = result.first;
       return Grupo.fromMap({
@@ -169,6 +170,29 @@ class GrupoRepository {
       parameters: {'criador_id': criadorId, 'nome': nome},
     );
     return (result.first[0] as int) > 0;
+  }
+
+  /// Retorna um grupo pelo seu nome.
+  Future<Grupo?> getGrupoByNome(String nome) async {
+    final result = await _connection.execute(
+      Sql.named('SELECT * FROM grupos WHERE nome = @nome;'),
+      parameters: {'nome': nome},
+    );
+    if (result.isNotEmpty) {
+      final row = result.first;
+      return Grupo.fromMap({
+        'id': row[0],
+        'nome': row[1],
+        'descricao': row[2],
+        'cor_tema': row[3],
+        'criador_id': row[4],
+        'publico': row[5],
+        'max_membros': row[6],
+        'data_criacao': row[7],
+        'data_atualizacao': row[8],
+      });
+    }
+    return null;
   }
 
   /// Retorna todos os grupos criados por um usuário específico

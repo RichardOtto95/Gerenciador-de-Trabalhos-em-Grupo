@@ -34,5 +34,11 @@
 	<string>Este app precisa acessar a pasta de downloads para salvar anexos.</string>
 	<key>NSDesktopFolderUsageDescription</key>
 	<string>Este app precisa acessar a área de trabalho para anexar arquivos às tarefas.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Este app precisa acessar a câmera para capturar fotos de perfil.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Este app precisa acessar a biblioteca de fotos para selecionar fotos de perfil.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Este app precisa acessar o microfone para gravar áudios de tarefas.</string>
 </dict>
 </plist>

@@ -46,6 +46,7 @@ class TaskStats {
 class TaskSummary {
   final String id;
   final String titulo;
+  final String grupoId;
   final String grupoNome;
   final String statusNome;
   final String? statusCor;
@@ -57,6 +58,7 @@ class TaskSummary {
   TaskSummary({
     required this.id,
     required this.titulo,
+    required this.grupoId,
     required this.grupoNome,
     required this.statusNome,
     this.statusCor,
@@ -71,14 +73,15 @@ class TaskSummary {
     final agora = DateTime.now();
     
     return TaskSummary(
-      id: map['id'],
-      titulo: map['titulo'],
-      grupoNome: map['grupo_nome'],
-      statusNome: map['status_nome'],
-      statusCor: map['status_cor'],
-      prioridade: map['prioridade'],
+      id: map['id']?.toString() ?? '',
+      titulo: map['titulo']?.toString() ?? 'Tarefa sem título',
+      grupoId: map['grupo_id']?.toString() ?? '',
+      grupoNome: map['grupo_nome']?.toString() ?? 'Grupo desconhecido',
+      statusNome: map['status_nome']?.toString() ?? 'Status desconhecido',
+      statusCor: map['status_cor']?.toString(),
+      prioridade: map['prioridade'] as int?,
       dataVencimento: dataVencimento,
-      dataCriacao: map['data_criacao'] as DateTime,
+      dataCriacao: map['data_criacao'] as DateTime? ?? DateTime.now(),
       vencida: dataVencimento != null && dataVencimento.isBefore(agora),
     );
   }
@@ -280,7 +283,7 @@ class DashboardRepository {
   Future<List<TaskSummary>> getMinhasTarefas(String usuarioId, {int limit = 10}) async {
     final query = '''
       SELECT 
-        t.id, t.titulo, g.nome as grupo_nome, st.nome as status_nome, 
+        t.id, t.titulo, t.grupo_id, g.nome as grupo_nome, st.nome as status_nome, 
         st.cor as status_cor, t.prioridade, t.data_vencimento, t.data_criacao
       FROM tarefas t
       JOIN atribuicoes_tarefa at ON t.id = at.tarefa_id
@@ -299,12 +302,13 @@ class DashboardRepository {
     return result.map((row) => TaskSummary.fromMap({
       'id': row[0],
       'titulo': row[1],
-      'grupo_nome': row[2],
-      'status_nome': row[3],
-      'status_cor': row[4],
-      'prioridade': row[5],
-      'data_vencimento': row[6],
-      'data_criacao': row[7],
+      'grupo_id': row[2],
+      'grupo_nome': row[3],
+      'status_nome': row[4],
+      'status_cor': row[5],
+      'prioridade': row[6],
+      'data_vencimento': row[7],
+      'data_criacao': row[8],
     })).toList();
   }
 
@@ -312,7 +316,7 @@ class DashboardRepository {
   Future<List<TaskSummary>> getProximosVencimentos(String usuarioId, {int limit = 5}) async {
     final query = '''
       SELECT 
-        t.id, t.titulo, g.nome as grupo_nome, st.nome as status_nome, 
+        t.id, t.titulo, t.grupo_id, g.nome as grupo_nome, st.nome as status_nome, 
         st.cor as status_cor, t.prioridade, t.data_vencimento, t.data_criacao
       FROM tarefas t
       JOIN atribuicoes_tarefa at ON t.id = at.tarefa_id
@@ -333,12 +337,13 @@ class DashboardRepository {
     return result.map((row) => TaskSummary.fromMap({
       'id': row[0],
       'titulo': row[1],
-      'grupo_nome': row[2],
-      'status_nome': row[3],
-      'status_cor': row[4],
-      'prioridade': row[5],
-      'data_vencimento': row[6],
-      'data_criacao': row[7],
+      'grupo_id': row[2],
+      'grupo_nome': row[3],
+      'status_nome': row[4],
+      'status_cor': row[5],
+      'prioridade': row[6],
+      'data_vencimento': row[7],
+      'data_criacao': row[8],
     })).toList();
   }
 

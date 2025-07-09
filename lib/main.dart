@@ -1,6 +1,8 @@
 import 'dart:ui';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:window_manager/window_manager.dart';
@@ -28,26 +30,28 @@ import 'package:trabalho_bd/pages/notification_preferences_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Configurar janela para desktop
-  await windowManager.ensureInitialized();
-  
-  WindowOptions windowOptions = WindowOptions(
-    size: Size(500, 800), // Tamanho fixo da janela
-    minimumSize: Size(500, 800), // Tamanho mínimo (igual ao fixo)
-    maximumSize: Size(500, 800), // Tamanho máximo (igual ao fixo)
-    center: true, // Centralizar na tela
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden, // Ocultar barra de título (borderless)
-    alwaysOnTop: false,
-    fullScreen: false,
-  );
-  
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  debugPaintSizeEnabled = false;
+  // Configurar janela para desktop apenas (não iOS)
+  if (Platform.isWindows || Platform.isMacOS) {
+    await windowManager.ensureInitialized();
+    
+    WindowOptions windowOptions = WindowOptions(
+      size: Size(500, 800), // Tamanho fixo da janela
+      minimumSize: Size(500, 800), // Tamanho mínimo (igual ao fixo)
+      maximumSize: Size(500, 800), // Tamanho máximo (igual ao fixo)
+      center: true, // Centralizar na tela
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.hidden, // Ocultar barra de título (borderless)
+      alwaysOnTop: false,
+      fullScreen: false,
+    );
+    
+    await windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   
   await DatabaseHelper().mainConnection();
 

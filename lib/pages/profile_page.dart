@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import 'package:trabalho_bd/db/models/usuario_model.dart';
 import 'package:trabalho_bd/services/auth_service.dart';
 import 'package:trabalho_bd/shared/functions.dart';
@@ -21,6 +24,7 @@ class _ProfileState extends State<Profile> {
   bool _isEditing = false;
   bool _isLoading = false;
   bool _isLoggingOut = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -103,6 +107,113 @@ class _ProfileState extends State<Profile> {
     }
   }
 
+  Future<void> _selectProfilePhoto() async {
+    try {
+      setState(() {
+        _isUploadingPhoto = true;
+      });
+
+      // Mostrar opções de seleção
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Selecionar foto de perfil'),
+          content: Text('Como você gostaria de selecionar sua foto?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, ImageSource.gallery),
+              child: Text('Galeria'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, ImageSource.camera),
+              child: Text('Câmera'),
+            ),
+          ],
+        ),
+      );
+
+      if (source == null) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        return;
+      }
+
+      // Selecionar imagem
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (image == null) {
+        setState(() {
+          _isUploadingPhoto = false;
+        });
+        return;
+      }
+
+      // Criar diretório para fotos de perfil
+      final directory = await getApplicationDocumentsDirectory();
+      final profilePhotosDir = Directory('${directory.path}/profile_photos');
+      
+      if (!await profilePhotosDir.exists()) {
+        await profilePhotosDir.create(recursive: true);
+      }
+
+      // Gerar nome único para a foto
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = image.path.split('.').last;
+      final fileName = '${widget.usuario.id}_$timestamp.$extension';
+      final newPath = '${profilePhotosDir.path}/$fileName';
+
+      // Copiar a imagem para o diretório da aplicação
+      await File(image.path).copy(newPath);
+
+      // Remover foto anterior se existir
+      if (widget.usuario.fotoPerfil != null) {
+        try {
+          final oldFile = File(widget.usuario.fotoPerfil!);
+          if (await oldFile.exists()) {
+            await oldFile.delete();
+          }
+        } catch (e) {
+          print('Erro ao deletar foto anterior: $e');
+        }
+      }
+
+      // Atualizar usuário com nova foto
+      widget.usuario.fotoPerfil = newPath;
+      widget.usuario.dataAtualizacao = DateTime.now();
+
+      // Salvar no banco de dados
+      final usuarioRepo = UsuarioRepository();
+      await usuarioRepo.updateUsuario(widget.usuario);
+
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+
+      if (mounted) {
+        mostrarSnackBar(context, 'Foto de perfil atualizada com sucesso!');
+      }
+    } catch (e) {
+      setState(() {
+        _isUploadingPhoto = false;
+      });
+      
+      if (mounted) {
+        mostrarSnackBar(context, 'Erro ao atualizar foto: $e');
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -121,7 +232,9 @@ class _ProfileState extends State<Profile> {
           : _bioController.text.trim();
       widget.usuario.dataAtualizacao = DateTime.now();
 
-      // await usuarioRepo.updateUsuario(widget.usuario); // This line was removed as per the edit hint
+      // Salvar no banco de dados
+      final usuarioRepo = UsuarioRepository();
+      await usuarioRepo.updateUsuario(widget.usuario);
 
       setState(() {
         _isEditing = false;
@@ -195,14 +308,7 @@ class _ProfileState extends State<Profile> {
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     child: widget.usuario.fotoPerfil != null
                         ? ClipOval(
-                            child: Image.network(
-                              widget.usuario.fotoPerfil!,
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => 
-                                  _buildDefaultAvatar(),
-                            ),
+                            child: _buildProfileImage(),
                           )
                         : _buildDefaultAvatar(),
                   ),
@@ -216,11 +322,17 @@ class _ProfileState extends State<Profile> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          onPressed: () {
-                            // TODO: Implementar seleção de foto
-                            mostrarSnackBar(context, 'Seleção de foto será implementada em breve');
-                          },
-                          icon: const Icon(Icons.camera_alt, color: Colors.white),
+                          onPressed: _isUploadingPhoto ? null : _selectProfilePhoto,
+                          icon: _isUploadingPhoto
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.camera_alt, color: Colors.white),
                           iconSize: 20,
                         ),
                       ),
@@ -404,6 +516,43 @@ class _ProfileState extends State<Profile> {
         color: Colors.white,
       ),
     );
+  }
+
+  Widget _buildProfileImage() {
+    if (widget.usuario.fotoPerfil == null) {
+      return _buildDefaultAvatar();
+    }
+
+    // Verificar se é um caminho local ou URL
+    if (widget.usuario.fotoPerfil!.startsWith('http')) {
+      // URL da internet
+      return Image.network(
+        widget.usuario.fotoPerfil!,
+        width: 120,
+        height: 120,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+      );
+    } else {
+      // Arquivo local
+      final file = File(widget.usuario.fotoPerfil!);
+      return FutureBuilder<bool>(
+        future: file.exists(),
+        builder: (context, snapshot) {
+          if (snapshot.data == true) {
+            return Image.file(
+              file,
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => _buildDefaultAvatar(),
+            );
+          } else {
+            return _buildDefaultAvatar();
+          }
+        },
+      );
+    }
   }
 
   Widget _buildInfoRow(String label, String value, IconData icon, {Color? color}) {

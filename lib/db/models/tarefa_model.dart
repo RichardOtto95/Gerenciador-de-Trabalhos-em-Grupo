@@ -43,11 +43,11 @@ class Tarefa {
   /// Converte uma linha do banco de dados (Map) em um objeto Tarefa.
   factory Tarefa.fromMap(Map<String, dynamic> map) {
     return Tarefa(
-      id: map['id'],
-      titulo: map['titulo'],
-      descricao: map['descricao'],
-      grupoId: map['grupo_id'],
-      criadorId: map['criador_id'],
+      id: map['id']?.toString() ?? '',
+      titulo: map['titulo']?.toString() ?? '',
+      descricao: map['descricao']?.toString(),
+      grupoId: map['grupo_id']?.toString() ?? '',
+      criadorId: map['criador_id']?.toString() ?? '',
       statusId: _parseInt(map['status_id']) ?? 1,
       prioridade: _parseInt(map['prioridade']) ?? 2,
       dataInicio: (map['data_inicio'] as DateTime?),
@@ -55,8 +55,8 @@ class Tarefa {
       estimativaHoras: _parseDouble(map['estimativa_horas']),
       horasTrabalhadas: _parseDouble(map['horas_trabalhadas']) ?? 0.0,
       progresso: _parseInt(map['progresso']) ?? 0,
-      dataCriacao: (map['data_criacao'] as DateTime),
-      dataAtualizacao: (map['data_atualizacao'] as DateTime),
+      dataCriacao: (map['data_criacao'] as DateTime?) ?? DateTime.now(),
+      dataAtualizacao: (map['data_atualizacao'] as DateTime?) ?? DateTime.now(),
       dataConclusao: (map['data_conclusao'] as DateTime?),
     );
   }
@@ -182,6 +182,7 @@ class TarefaRepository {
       Sql.named('SELECT * FROM tarefas WHERE id = @id;'),
       parameters: {'id': id},
     );
+    
     if (result.isNotEmpty) {
       final row = result.first;
       return Tarefa.fromMap({
