@@ -29,7 +29,7 @@ class DatabaseHelper {
           port: 5432,
           database: 'development',
           username: 'postgres',
-          password: 'postgres',
+          password: 'masterkey',
         ),
         settings: ConnectionSettings(sslMode: SslMode.disable),
         // settings: ConnectionSettings(sslMode: config['sslMode']),
@@ -40,8 +40,7 @@ class DatabaseHelper {
       _isConnected = true;
       return true;
     } catch (e) {
-      //   continue;
-      // }
+      print(e);
     }
 
     _isConnected = false;
@@ -88,6 +87,36 @@ class DatabaseHelper {
     }
   }
 
+  Future<void> registerView() async {
+    if (!_isConnected) {
+      print('❌ Não é possível registrar view - sem conexão');
+      return;
+    }
+    try {
+      print('📊 Registrando view de produtividade por grupo...');
+      final viewSql = await File('assets/sql/view.sql').readAsString();
+      await _connection.execute(viewSql);
+      print('✅ View registrada com sucesso!');
+    } catch (e) {
+      print('❌ Erro ao registrar view: $e');
+    }
+  }
+
+  Future<void> registerProcedure() async {
+    if (!_isConnected) {
+      print('❌ Não é possível registrar procedure - sem conexão');
+      return;
+    }
+    try {
+      print('⚙️ Registrando procedure...');
+      final procSql = await File('assets/sql/procedure.sql').readAsString();
+      await _connection.execute(procSql);
+      print('✅ Procedure registrada com sucesso!');
+    } catch (e) {
+      print('❌ Erro ao registrar procedure: $e');
+    }
+  }
+
   Future<void> mainConnection() async {
     print('🚀 Iniciando conexão principal...');
 
@@ -117,6 +146,10 @@ class DatabaseHelper {
     } catch (e) {
       print('❌ Erro ao verificar tabelas: $e');
     }
+
+    // Registrar view e procedure
+    await registerView();
+    await registerProcedure();
   }
 
   Future<void> close() async {
