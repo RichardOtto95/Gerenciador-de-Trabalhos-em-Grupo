@@ -1,5 +1,102 @@
 # Gerenciador de Trabalhos em Grupo
 
+## Tutorial: Como Rodar um Aplicativo Flutter
+
+Este tutorial guiará você pelos passos necessários para executar um aplicativo Flutter em um emulador, simulador ou dispositivo físico. Antes de começar, certifique-se de que o Flutter SDK esteja instalado e configurado corretamente em seu sistema.
+
+1. Verificação da Instalação do Flutter
+Primeiro, vamos verificar se sua instalação do Flutter está completa e se todos os requisitos estão atendidos.
+
+ * Abra seu terminal ou prompt de comando.
+ * Execute o seguinte comando:
+
+>   flutter doctor
+
+🔎 O comando flutter doctor analisa seu ambiente e exibe um relatório. Ele indica se há componentes faltando (como SDKs de Android ou iOS, ou IDEs) e fornece sugestões para corrigir quaisquer problemas. 
+
+* Corrija quaisquer problemas reportados pelo flutter doctor antes de prosseguir.
+
+2. Abrindo o Projeto Flutter
+
+ * Navegue até o diretório raiz do seu projeto Flutter no terminal:
+ * 
+>   cd caminho/para/seu/projeto/flutter
+
+ * Abra o projeto em seu editor de código preferido, como o VS Code ou Android Studio.
+
+3. Selecionando um Dispositivo
+Você pode executar seu aplicativo em um emulador Android, simulador iOS ou um dispositivo físico conectado.
+
+3.1. Emulador Android (para Windows/Linux/macOS)
+
+ * Certifique-se de ter o Android Studio instalado.
+ * No Android Studio, vá em Tools > Device Manager (ou AVD Manager em versões mais antigas).
+
+ * Crie um novo Virtual Device (dispositivo virtual) se ainda não tiver um.
+
+ * Inicie o emulador a partir do Device Manager.
+
+3.2. Simulador iOS (apenas para macOS)
+
+ * Certifique-se de ter o Xcode instalado.
+ * Abra o Xcode e vá em Xcode > Open Developer Tool
+
+ > Simulator.
+
+ * O simulador iOS será iniciado.
+
+3.3. Dispositivo Físico
+
+ * Android:
+
+   * Habilite as Opções do Desenvolvedor em seu dispositivo Android (geralmente tocando várias vezes no "Número da Compilação" nas informações do telefone).
+
+   * Habilite a Depuração USB nas Opções do Desenvolvedor.
+
+   * Conecte seu dispositivo Android ao computador via cabo USB.
+
+   * Aceite a solicitação de depuração USB no seu dispositivo.
+ * iOS (apenas macOS):
+
+   * Conecte seu iPhone/iPad ao Mac via cabo USB.
+
+   * Confie no computador se for solicitado no dispositivo.
+
+   * Pode ser necessário abrir o Xcode e permitir que ele processe o dispositivo pela primeira vez.
+
+4. Listando Dispositivos Disponíveis
+No terminal, execute o seguinte comando para ver os dispositivos conectados e emuladores/simuladores disponíveis:
+flutter devices
+
+✨ Você verá uma lista de dispositivos, como emuladores Android, simuladores iOS ou dispositivos físicos, com seus respectivos IDs.
+
+5. Rodando o Aplicativo
+Com um dispositivo selecionado e iniciado (ou conectado), você pode rodar seu aplicativo.
+
+5.1. Rodar no Dispositivo Padrão
+Se houver apenas um dispositivo disponível ou se você quiser que o Flutter escolha o melhor, execute:
+flutter run
+
+5.2. Rodar em um Dispositivo Específico
+Se você tem vários dispositivos e quer especificar qual usar, use a flag -d seguida pelo ID do dispositivo (obtido via flutter devices):
+flutter run -d <device_id>
+
+Por exemplo:
+ * Emulador Android: flutter run -d emulator-5554
+ * Simulador iOS: flutter run -d A906E881-A61F-43B0-8CAE-226B22329A3F (o ID será diferente para você)
+ * Dispositivo Android Físico: flutter run -d SM-G973F (substitua pelo ID do seu dispositivo)
+
+6. Depuração e Hot Reload/Restart
+Enquanto o aplicativo estiver rodando, você pode usar os seguintes comandos no terminal:
+
+ * r: Hot Reload ⚡️ - Recarrega rapidamente o código modificado na tela sem perder o estado atual do aplicativo. Perfeito para pequenos ajustes na UI.
+ * R: Hot Restart 🔄 - Recarrega completamente o aplicativo, perdendo o estado, mas recarregando todo o código. Bom para mudanças maiores que afetam o estado.
+ * q: Sair do processo de execução.
+
+Parabéns! 🎉
+
+Você agora sabe como rodar seu aplicativo Flutter em diferentes ambientes. Continue explorando e desenvolvendo seus projetos!
+
 ## 📋 User Stories Implementadas
 
 **Módulo de Grupos: 4/4 user stories principais implementadas** 
